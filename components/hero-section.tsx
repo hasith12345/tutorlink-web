@@ -1,96 +1,124 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
-import { Search, UserPlus } from "lucide-react"
+import { Rocket, Pencil, Atom } from "lucide-react"
 import Image from "next/image"
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-center bg-gradient-to-br">
-      {/* Floating Images */}
-      {/* Top Left - Cap */}
-      <div className="absolute rotate-340 top-25 left-10 md:left-50 z-0 animate-float">
-        <Image 
-          src="/cap.png" 
-          alt="Graduation cap" 
-          width={200}
-          height={200}
-          className="opacity-100"
-        />
-      </div>
+    <section className="relative bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 overflow-hidden min-h-[100vh] flex pt-8 -mt-20">
       
-      {/* Top Right - Book */}
-      <div className="rotate-10 absolute top-25 right-10 md:right-45 z-0 animate-float" style={{ animationDelay: '1s' }}>
-        <Image 
-          src="/book.png" 
-          alt="Book" 
-          width={200}
-          height={200}
-          className="opacity-100"
-        />
-      </div>
-      
-      {/* Bottom Left - Online */}
-      <div className="absolute bottom-37 left-10 md:left-16 z-0 animate-float" style={{ animationDelay: '2s' }}>
-        <Image 
-          src="/online.png" 
-          alt="Online learning" 
-          width={400}
-          height={400}
-          className="opacity-100"
-        />
-      </div>
-      
-      {/* Bottom Right - Physical */}
-      <div className="absolute bottom-36 right-10 md:right-15 z-0 animate-float" style={{ animationDelay: '1.5s' }}>
-        <Image 
-          src="/physical.png" 
-          alt="Physical learning" 
-          width={430}
-          height={430}
-          className="opacity-100"
-        />
+      {/* Decorative Elements */}
+      <div className="absolute top-32 left-16 opacity-20 z-0">
+        <Atom className="w-20 h-20 text-white" strokeWidth={1.5} />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full py-10 -mt-30">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-6 leading-tight">
-          Find the Right Tutor.
-          <br />
-          Learn Smarter with TutorLink.
-        </h1>
-        <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-10">
-          A centralized platform connecting students and tutors for online and physical classes.
+      <div className="absolute top-42 left-46 z-0 opacity-80">
+        <Rocket className="w-28 h-28 text-yellow-300" fill="#FDE047" strokeWidth={1.5} />
+      </div>
+
+      <div className="absolute top-46 right-45 z-0 opacity-80">
+        <Pencil className="w-24 h-24 text-yellow-300" fill="#FDE047" strokeWidth={1.5} />
+      </div>
+
+      <div className="absolute top-32 right-20 opacity-20 z-0">
+        <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="13" r="8" strokeWidth="1.5" />
+          <path d="M12 5c1-2 3-2 3-2" strokeWidth="1.5" />
+        </svg>
+      </div>
+
+      {/* Decorative Circles */}
+      <div className="absolute bottom-32 left-8 opacity-10">
+        <svg className="w-32 h-32" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="white" strokeWidth="1.5" />
+          <circle cx="50" cy="50" r="30" fill="none" stroke="white" strokeWidth="1.5" />
+          <circle cx="50" cy="50" r="20" fill="none" stroke="white" strokeWidth="1.5" />
+        </svg>
+      </div>
+
+      <div className="absolute bottom-40 right-8 opacity-10">
+        <svg className="w-32 h-32" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="white" strokeWidth="1.5" />
+          <circle cx="50" cy="50" r="30" fill="none" stroke="white" strokeWidth="1.5" />
+        </svg>
+      </div>
+
+      {/* Stars */}
+      <div className="absolute top-1/4 left-1/4 text-yellow-300 text-4xl opacity-70">★</div>
+      <div className="absolute top-1/2 right-1/4 text-yellow-300 text-4xl opacity-70">★</div>
+      <div className="absolute bottom-1/5 left-1/3 text-yellow-400 text-4xl opacity-70">★</div>
+      <div className="absolute bottom-1/7 right-1/3 text-yellow-300 text-4xl opacity-70">★</div>
+
+      {/* Left Student */}
+      <div className="absolute bottom-0 md:left-[-40px] lg:left-[-80px] z-10 w-96 md:w-[450px] lg:w-[600px]">
+        <div className="absolute bottom-0 left-0 w-56 h-56 lg:w-96 lg:h-96 bg-orange-500 rounded-full z-0" />
+        <div className="relative z-10">
+          <Image
+            src="/student-left.png"
+            alt="Student"
+            width={600}
+            height={720}
+            className="object-contain"
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Right Tutor */}
+      <div className="absolute bottom-0 md:right-[-40px] lg:right-[-80px] z-10 w-96 md:w-[450px] lg:w-[600px]">
+        <div className="absolute bottom-0 right-0 w-56 h-56 lg:w-96 lg:h-96 bg-blue-400 rounded-full z-0" />
+        <div className="relative z-10">
+          <Image
+            src="/tutor-right.png"
+            alt="Tutor"
+            width={700}
+            height={820}
+            className="object-contain scale-x-[-1]"
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full pt-44 pb-10">
+        <p
+          className="text-3xl md:text-3xl fo text-white  text-center" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}
+          
+        >
+          Smart way to learn
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            size="lg"
-            className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6 rounded-xl"
-          >
-            <Search className="w-5 h-5 mr-2" />
-            Find a Tutor
-          </Button>
+
+        <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight drop-shadow-lg">
+          Innovative
+          <br />
+          Learning
+        </h1>
+
+        <p className="text-5xl md:text-2xl fo text-white mb-8 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
+          <span>TutorLink connects students and tutors through a secure, smart platform </span><br />
+          <span>for easy class discovery, enrollment, and learning access.</span> 
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          
+            <Button
+              size="lg"
+              className="bg-white hover:bg-gray-100 text-indigo-600 text-base font-semibold px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wide">
+              <a href="/register">
+              REGISTER
+              </a>
+            </Button>
+          
+
           <Button
             size="lg"
             variant="outline"
-            className="bg-transparent border-2 border-indigo-500 text-indigo-600 hover:bg-indigo-50 transition-all duration-300 text-lg px-8 py-6 rounded-xl"
+            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-indigo-600 transition-all duration-300 text-base font-semibold px-10 py-6 rounded-full uppercase tracking-wide"
           >
-            <UserPlus className="w-5 h-5 mr-2" />
-            Become a Tutor
+            READ MORE
           </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-3 gap-8 max-w-xl mx-auto">
-          <div>
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">10K+</div>
-            <div className="text-gray-600 text-sm">Active Tutors</div>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">50K+</div>
-            <div className="text-gray-600 text-sm">Students</div>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">100+</div>
-            <div className="text-gray-600 text-sm">Subjects</div>
-          </div>
         </div>
       </div>
     </section>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react"
+import { authStorage } from "@/lib/api"
 
 export default function VerifyEmailPage() {
   const router = useRouter()
@@ -95,10 +96,32 @@ export default function VerifyEmailPage() {
       const data = await response.json()
 
       if (response.ok && data.verified) {
-        setSuccess(true)
-        setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+        // ── Auto-login: store token + user, skip the login page ──
+        if (data.token && data.user) {
+          authStorage.setToken(data.token)
+          authStorage.setUser(data.user)
+
+          const { hasStudentProfile, hasTutorProfile } = data.user
+
+          setSuccess(true)
+          setTimeout(() => {
+            if (hasStudentProfile && hasTutorProfile) {
+              window.location.href = '/select-role'
+            } else if (hasTutorProfile) {
+              authStorage.setActiveRole('tutor')
+              window.location.href = '/tutor/dashboard'
+            } else if (hasStudentProfile) {
+              authStorage.setActiveRole('student')
+              window.location.href = '/search'
+            } else {
+              window.location.href = '/'
+            }
+          }, 1500)
+        } else {
+          // Fallback (old backend) — just go to login
+          setSuccess(true)
+          setTimeout(() => { router.push('/login') }, 2000)
+        }
       } else {
         setError(data.message || 'Verification failed. Please try again.')
         if (data.expired) {
@@ -160,7 +183,7 @@ export default function VerifyEmailPage() {
           </div>
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Email Verified!</h1>
           <p className="text-slate-600 mb-4">Your account has been successfully verified.</p>
-          <p className="text-sm text-slate-500">Redirecting to login...</p>
+          <p className="text-sm text-slate-500">Redirecting to your dashboard...</p>
         </div>
       </div>
     )

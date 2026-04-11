@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, MapPin, Monitor, Users, Shuffle, Loader2 } from "lucide-react"
+import { Star, MapPin, Monitor, Users, Shuffle, Loader2, BookOpen, Clock, Award } from "lucide-react"
 
 interface TutorGig {
   id: number
@@ -14,8 +15,12 @@ interface TutorGig {
   mode: "online" | "physical" | "hybrid"
   rating: number
   reviews: number
-  price: string
+  hourlyRate: number
   avatar: string
+  experience: string
+  students: number
+  verified: boolean
+  gradient: string
 }
 
 const generateGigs = (start: number, count: number): TutorGig[] => {
@@ -51,17 +56,38 @@ const generateGigs = (start: number, count: number): TutorGig[] => {
     "Daniel Taylor",
   ]
 
-  return Array.from({ length: count }, (_, i) => ({
-    id: start + i,
-    name: names[i % names.length],
-    subject: subjects[i % subjects.length],
-    location: locations[i % locations.length],
-    mode: modes[i % modes.length],
-    rating: 4 + Math.random(),
-    reviews: Math.floor(Math.random() * 200) + 10,
-    price: `$${Math.floor(Math.random() * 50) + 20}/hr`,
-    avatar: `/placeholder.svg?height=80&width=80&query=professional tutor portrait ${i + 1}`,
-  }))
+  // Array of gradient combinations for fallback
+  const gradients = [
+    "from-indigo-500 to-purple-600",
+    "from-blue-500 to-cyan-600",
+    "from-green-500 to-emerald-600",
+    "from-orange-500 to-red-600",
+    "from-pink-500 to-rose-600",
+    "from-purple-500 to-fuchsia-600",
+    "from-teal-500 to-blue-600",
+    "from-amber-500 to-orange-600",
+  ]
+
+  return Array.from({ length: count }, (_, i) => {
+    const name = names[i % names.length]
+    const seed = `${name}-${start + i}`
+    
+    return {
+      id: start + i,
+      name,
+      subject: subjects[i % subjects.length],
+      location: locations[i % locations.length],
+      mode: modes[i % modes.length],
+      rating: 4 + Math.random(),
+      reviews: Math.floor(Math.random() * 200) + 10,
+      hourlyRate: Math.floor(Math.random() * 50) + 20,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
+      experience: `${Math.floor(Math.random() * 8) + 2} years`,
+      students: Math.floor(Math.random() * 150) + 20,
+      verified: Math.random() > 0.3,
+      gradient: gradients[i % gradients.length],
+    }
+  })
 }
 
 const modeIcons = {
@@ -98,11 +124,11 @@ export function TutorGigsFeed() {
   }
 
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Available Tutors</h2>
-          <p className="text-gray-600 text-lg">Browse our community of qualified tutors ready to help you succeed</p>
+          <h2 className="text-5xl md:text-4xl fo text-gray-900 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>Available Tutors</h2>
+          <p className="text-5xl md:text-2xl fo text-gray-400 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>Browse our community of qualified tutors ready to help you succeed</p>
         </div>
 
         {/* Gigs Grid */}
@@ -139,51 +165,103 @@ export function TutorGigsFeed() {
 }
 
 function GigCard({ gig, index }: { gig: TutorGig; index: number }) {
+  const router = useRouter()
   const ModeIcon = modeIcons[gig.mode]
+
+  const handleViewProfile = () => {
+    router.push(`/gig-details/${gig.id}`)
+  }
 
   return (
     <Card
-      className="bg-white rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+      className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1"
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      <CardContent className="p-5">
-        <div className="flex items-start gap-4 mb-4">
-          <img
-            src={gig.avatar || "/placeholder.svg"}
-            alt={gig.name}
-            className="w-14 h-14 rounded-xl object-cover bg-gray-100"
-          />
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 truncate">{gig.name}</h3>
-            <p className="text-indigo-600 font-medium text-sm">{gig.subject}</p>
+      <CardContent className="p-0">
+        {/* Profile Header with Gradient Background */}
+        <div className="relative bg-gradient-to-br from-indigo-50 to-purple-50 p-6 pb-8">
+          {/* Verified Badge */}
+          {gig.verified && (
+            <div className="absolute top-3 right-3">
+              <Badge className="bg-green-500 text-white border-0 shadow-sm">
+                <Award className="w-3 h-3 mr-1" />
+                Verified
+              </Badge>
+            </div>
+          )}
+
+          {/* Avatar */}
+          <div className="flex justify-center mb-4">
+            <div className="w-20 h-20 rounded-full bg-white shadow-lg ring-4 ring-white overflow-hidden">
+              <img 
+                src={gig.avatar} 
+                alt={gig.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Name and Subject */}
+          <div className="text-center">
+            <h3 className="font-bold text-gray-900 text-lg mb-1">{gig.name}</h3>
+            <p className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1">
+              <BookOpen className="w-4 h-4" />
+              {gig.subject}
+            </p>
           </div>
         </div>
 
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-gray-600 text-sm">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span>{gig.location}</span>
+        {/* Card Body */}
+        <div className="p-5 space-y-3">
+          {/* Stats Row */}
+          <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-gray-400" />
+              <span>{gig.experience}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-gray-400" />
+              <span>{gig.students} students</span>
+            </div>
           </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <span className="truncate">{gig.location}</span>
+          </div>
+
+          {/* Mode Badge */}
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={`${modeColors[gig.mode]} rounded-lg`}>
-              <ModeIcon className="w-3 h-3 mr-1" />
+            <Badge variant="secondary" className={`${modeColors[gig.mode]} rounded-lg px-3 py-1`}>
+              <ModeIcon className="w-3.5 h-3.5 mr-1.5" />
               {gig.mode.charAt(0).toUpperCase() + gig.mode.slice(1)}
             </Badge>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-            <span className="font-semibold text-gray-900">{gig.rating.toFixed(1)}</span>
-            <span className="text-gray-500 text-sm">({gig.reviews})</span>
+          {/* Rating and Price */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+              <span className="font-bold text-gray-900">{gig.rating.toFixed(1)}</span>
+              <span className="text-gray-500 text-xs">({gig.reviews})</span>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-gray-500">Starting at</div>
+              <div className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                ${gig.hourlyRate}/hr
+              </div>
+            </div>
           </div>
-          <span className="text-lg font-bold text-indigo-600">{gig.price}</span>
-        </div>
 
-        <Button className="w-full mt-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white rounded-xl">
-          Enroll Now
-        </Button>
+          {/* Action Button */}
+          <Button 
+            onClick={handleViewProfile}
+            className="w-full mt-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+          >
+            View Profile
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -192,19 +270,27 @@ function GigCard({ gig, index }: { gig: TutorGig; index: number }) {
 function GigSkeleton() {
   return (
     <Card className="bg-white rounded-2xl border-0 shadow-md overflow-hidden">
-      <CardContent className="p-5">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="w-14 h-14 rounded-xl bg-gray-200 animate-pulse" />
-          <div className="flex-1 space-y-2">
-            <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4" />
-            <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+      <CardContent className="p-0">
+        {/* Header Skeleton */}
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 pb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-20 h-20 rounded-full bg-gray-300 animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-5 bg-gray-300 rounded animate-pulse mx-auto w-3/4" />
+            <div className="h-4 bg-gray-300 rounded animate-pulse mx-auto w-1/2" />
           </div>
         </div>
-        <div className="space-y-3 mb-4">
+        {/* Body Skeleton */}
+        <div className="p-5 space-y-3">
+          <div className="flex justify-between">
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3" />
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3" />
+          </div>
           <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3" />
           <div className="h-6 bg-gray-200 rounded animate-pulse w-20" />
+          <div className="h-10 bg-gray-200 rounded-xl animate-pulse mt-4" />
         </div>
-        <div className="h-10 bg-gray-200 rounded-xl animate-pulse mt-4" />
       </CardContent>
     </Card>
   )

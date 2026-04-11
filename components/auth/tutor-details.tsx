@@ -1,8 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { ArrowLeft, BookOpen, GraduationCap, Clock, X } from "lucide-react"
+import {
+  ArrowLeft, Calendar, Phone, MapPin, CreditCard,
+  Upload, FileText, Image as ImageIcon, X, CheckCircle,
+  AlertCircle, Info
+} from "lucide-react"
 import { api, authStorage } from "@/lib/api"
 
 interface TutorDetailsProps {
@@ -15,125 +20,227 @@ interface TutorDetailsProps {
   }
 }
 
-export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps) {
-  const [formData, setFormData] = useState({
-    subjects: [] as string[],
-    educationLevels: [] as string[],
-    yearsExperience: ""
+// ─── Constants ────────────────────────────────────────────────────────────────
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024   // 5 MB
+const PDF_MAX_BYTES   = 10 * 1024 * 1024  // 10 MB
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, "application/pdf"]
+
+// ─── Upload mode ──────────────────────────────────────────────────────────────
+type UploadMode = "image" | "pdf" | null
+
+interface UploadedFile {
+  url: string
+  name: string
+  type: string  // "image" | "pdf"
+}
+
+// ─── Helper: upload a single file to /api/upload/id-copy ─────────────────────
+async function uploadIdFile(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const res = await fetch("http://localhost:5001/api/upload/id-copy", {
+    method: "POST",
+    body: formData,
   })
-  const [currentSubject, setCurrentSubject] = useState("")
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Upload failed" }))
+    throw new Error(err.message || "Upload failed")
+  }
+  const data = await res.json()
+  return data.url as string
+}
+
+export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps) {
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    dob: "",
+    phone: "",
+    address: "",
+    idNumber: ""
+  })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const experienceOptions = [
-    { value: "0-1", label: "0-1 year" },
-    { value: "1-3", label: "1-3 years" },
-    { value: "3-5", label: "3-5 years" },
-    { value: "5+", label: "5+ years" }
-  ]
+  // ── ID Copy state ──────────────────────────────────────────────────────────
+  const [uploadMode, setUploadMode] = useState<UploadMode>(null)
 
-  const educationLevelOptions = [
-    { value: "primary", label: "Primary" },
-    { value: "secondary", label: "Secondary" },
-    { value: "al", label: "A/L" },
-    { value: "undergraduate", label: "Undergraduate" }
-  ]
+  // Image mode
+  const [frontFile, setFrontFile] = useState<UploadedFile | null>(null)
+  const [backFile,  setBackFile]  = useState<UploadedFile | null>(null)
+  const [uploadingFront, setUploadingFront] = useState(false)
+  const [uploadingBack,  setUploadingBack]  = useState(false)
 
-  const popularSubjects = [
-    "Math", "Physics", "Chemistry", "Biology", "ICT",
-    "English", "Science", "Sinhala", "History", "Geography",
-    "Accounting", "Business Studies", "Economics", "Tamil"
-  ]
+  // PDF mode
+  const [pdfFile, setPdfFile] = useState<UploadedFile | null>(null)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
 
-  const handleAddSubject = () => {
-    const subject = currentSubject.trim()
-    if (subject && !formData.subjects.includes(subject)) {
-      setFormData(prev => ({
-        ...prev,
-        subjects: [...prev.subjects, subject]
-      }))
-      setCurrentSubject("")
-      setErrors(prev => ({ ...prev, subjects: "" }))
-    }
-  }
+  // Per-slot inline validation errors
+  const [frontError, setFrontError] = useState<string>("")
+  const [backError,  setBackError]  = useState<string>("")
+  const [pdfError,   setPdfError]   = useState<string>("")
 
-  const handleRemoveSubject = (subject: string) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.filter(s => s !== subject)
-    }))
-  }
+  const frontRef = useRef<HTMLInputElement>(null)
+  const backRef  = useRef<HTMLInputElement>(null)
+  const pdfRef   = useRef<HTMLInputElement>(null)
 
-  const handleToggleEducationLevel = (level: string) => {
-    setFormData(prev => ({
-      ...prev,
-      educationLevels: prev.educationLevels.includes(level)
-        ? prev.educationLevels.filter(l => l !== level)
-        : [...prev.educationLevels, level]
-    }))
-    setErrors(prev => ({ ...prev, educationLevels: "" }))
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      handleAddSubject()
-    }
-  }
-
+  // ── Validation ─────────────────────────────────────────────────────────────
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (formData.subjects.length === 0) {
-      newErrors.subjects = "Please add at least one subject you can teach"
+    if (!formData.dob) {
+      newErrors.dob = "Date of birth is required"
     }
 
-    if (formData.educationLevels.length === 0) {
-      newErrors.educationLevels = "Please select at least one education level"
+    if (!formData.phone) {
+      newErrors.phone = "Phone number is required"
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Please enter a valid 10-digit phone number"
     }
 
-    if (!formData.yearsExperience) {
-      newErrors.yearsExperience = "Please select your years of experience"
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required"
+    }
+
+    if (!formData.idNumber.trim()) {
+      newErrors.idNumber = "ID number is required"
+    } else if (!/^\d{9}[Vv]$|^\d{12}$/.test(formData.idNumber)) {
+      newErrors.idNumber = "Please enter a valid NIC number (9 digits + V or 12 digits)"
+    }
+
+    // ID copy validation
+    if (!uploadMode) {
+      newErrors.idCopy = "Please upload your ID copy (both sides as images or as a PDF)"
+    } else if (uploadMode === "image") {
+      if (!frontFile) newErrors.idCopy = "Please upload the front side of your NIC"
+      else if (!backFile) newErrors.idCopy = "Please upload the back side of your NIC"
+    } else if (uploadMode === "pdf") {
+      if (!pdfFile) newErrors.idCopy = "Please upload your NIC as a PDF"
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
+  // ── File handlers ──────────────────────────────────────────────────────────
+  const validateFile = (file: File, isPdf: boolean): string | null => {
+    if (isPdf) {
+      if (file.type !== "application/pdf") return "Only PDF files are accepted here"
+      if (file.size > PDF_MAX_BYTES) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2)
+        return `File is too large (${sizeMB} MB). PDF must be 10 MB or smaller.`
+      }
+    } else {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type))
+        return "Only JPEG, PNG or WebP images are accepted"
+      if (file.size > IMAGE_MAX_BYTES) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2)
+        return `Image is too large (${sizeMB} MB). Maximum allowed size is 5 MB.`
+      }
+    }
+    return null
+  }
+
+  const handleFrontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""  // always reset so re-selecting the same file re-fires onChange
+    if (!file) return
+    const err = validateFile(file, false)
+    if (err) { setFrontError(err); return }
+    setFrontError("")
+    setErrors(prev => ({ ...prev, idCopy: "" }))
+    setUploadingFront(true)
+    try {
+      const url = await uploadIdFile(file)
+      setFrontFile({ url, name: file.name, type: "image" })
+    } catch (err: unknown) {
+      setFrontError(err instanceof Error ? err.message : "Front upload failed")
+    } finally {
+      setUploadingFront(false)
+    }
+  }
+
+  const handleBackUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""  // always reset so re-selecting the same file re-fires onChange
+    if (!file) return
+    const err = validateFile(file, false)
+    if (err) { setBackError(err); return }
+    setBackError("")
+    setErrors(prev => ({ ...prev, idCopy: "" }))
+    setUploadingBack(true)
+    try {
+      const url = await uploadIdFile(file)
+      setBackFile({ url, name: file.name, type: "image" })
+    } catch (err: unknown) {
+      setBackError(err instanceof Error ? err.message : "Back upload failed")
+    } finally {
+      setUploadingBack(false)
+    }
+  }
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""  // always reset so re-selecting the same file re-fires onChange
+    if (!file) return
+    const err = validateFile(file, true)
+    if (err) { setPdfError(err); return }
+    setPdfError("")
+    setErrors(prev => ({ ...prev, idCopy: "" }))
+    setUploadingPdf(true)
+    try {
+      const url = await uploadIdFile(file)
+      setPdfFile({ url, name: file.name, type: "pdf" })
+    } catch (err: unknown) {
+      setPdfError(err instanceof Error ? err.message : "PDF upload failed")
+    } finally {
+      setUploadingPdf(false)
+    }
+  }
+
+  const switchMode = (mode: UploadMode) => {
+    setUploadMode(mode)
+    setFrontFile(null)
+    setBackFile(null)
+    setPdfFile(null)
+    setFrontError("")
+    setBackError("")
+    setPdfError("")
+    setErrors(prev => ({ ...prev, idCopy: "" }))
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
-
+    if (!validateForm()) return
     setIsSubmitting(true)
 
     try {
-      const response = await api.signup({
+      await api.signup({
         fullName: userData.fullName,
         email: userData.email,
         password: userData.password,
-        role: 'tutor',
-        subjects: formData.subjects,
-        educationLevels: formData.educationLevels,
-        experience: formData.yearsExperience,
+        role: "tutor",
+        dob: formData.dob,
+        phone: formData.phone,
+        address: formData.address,
+        idNumber: formData.idNumber,
+        idCopyFront: frontFile?.url,
+        idCopyBack:  backFile?.url,
+        idCopyPdf:   pdfFile?.url,
       })
 
-      // Redirect to email verification page
-      window.location.href = `/verify-email?email=${encodeURIComponent(userData.email)}`
-
+      router.push(`/verify-email?email=${encodeURIComponent(userData.email)}`)
     } catch (error) {
-      console.error('Signup error:', error)
       setErrors({
-        submit: error instanceof Error ? error.message : 'An unexpected error occurred',
+        submit: error instanceof Error ? error.message : "An unexpected error occurred",
       })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="w-full h-full grid grid-cols-1 md:grid-cols-[40%_60%] overflow-hidden">
       {/* Left Side - Image Panel */}
@@ -164,121 +271,334 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
             </button>
             <div className="flex-1 text-center">
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Complete Your Profile</h1>
-              <p className="text-slate-500 text-sm mt-1">
-                Tell us about your teaching expertise
-              </p>
+              <p className="text-slate-500 text-sm mt-1">Tell us about your teaching expertise</p>
             </div>
             <div className="w-10" />
           </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-8 md:px-12 py-4 min-h-0" style={{ scrollBehavior: 'smooth' }}>
+        <div className="flex-1 overflow-y-auto px-8 md:px-12 py-4 min-h-0" style={{ scrollBehavior: "smooth" }}>
           <div className="space-y-6">
-          {/* Subjects You Teach */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">
-              <BookOpen className="w-4 h-4 inline mr-2" />
-              Subjects You Teach
-            </label>
-            
-            {/* Popular Subjects */}
-            <div className="flex flex-wrap gap-2">
-              {popularSubjects.map((subject) => (
-                <button
-                  key={subject}
-                  type="button"
-                  onClick={() => {
-                    if (formData.subjects.includes(subject)) {
-                      handleRemoveSubject(subject)
-                    } else {
-                      setFormData(prev => ({
-                        ...prev,
-                        subjects: [...prev.subjects, subject]
-                      }))
-                      setErrors(prev => ({ ...prev, subjects: "" }))
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                    formData.subjects.includes(subject)
-                      ? "bg-purple-600 text-white hover:bg-purple-700"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {subject}
-                  {formData.subjects.includes(subject) && (
-                    <X className="w-3 h-3" />
-                  )}
-                </button>
-              ))}
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                value={formData.dob}
+                onChange={(e) => { setFormData({ ...formData, dob: e.target.value }); setErrors(prev => ({ ...prev, dob: "" })) }}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all ${errors.dob ? "border-red-500" : "border-slate-300"}`}
+              />
+              {errors.dob && <p className="mt-1 text-sm text-red-600">{errors.dob}</p>}
             </div>
 
-            {errors.subjects && (
-              <p className="mt-2 text-sm text-red-600">{errors.subjects}</p>
-            )}
-          </div>
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <Phone className="w-4 h-4 inline mr-2" />
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                placeholder="0771234567"
+                value={formData.phone}
+                onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); setErrors(prev => ({ ...prev, phone: "" })) }}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all ${errors.phone ? "border-red-500" : "border-slate-300"}`}
+              />
+              {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+            </div>
 
-          {/* Education Level You Teach */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">
-              <GraduationCap className="w-4 h-4 inline mr-2" />
-              Education Level You Teach
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {educationLevelOptions.map((level) => (
+            {/* Address */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <MapPin className="w-4 h-4 inline mr-2" />
+                Address
+              </label>
+              <textarea
+                placeholder="Enter your address"
+                value={formData.address}
+                onChange={(e) => { setFormData({ ...formData, address: e.target.value }); setErrors(prev => ({ ...prev, address: "" })) }}
+                rows={3}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-none ${errors.address ? "border-red-500" : "border-slate-300"}`}
+              />
+              {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+            </div>
+
+            {/* ID Number */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <CreditCard className="w-4 h-4 inline mr-2" />
+                ID Number (NIC)
+              </label>
+              <input
+                type="text"
+                placeholder="123456789V or 123456789012"
+                value={formData.idNumber}
+                onChange={(e) => { setFormData({ ...formData, idNumber: e.target.value }); setErrors(prev => ({ ...prev, idNumber: "" })) }}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all ${errors.idNumber ? "border-red-500" : "border-slate-300"}`}
+              />
+              {errors.idNumber && <p className="mt-1 text-sm text-red-600">{errors.idNumber}</p>}
+            </div>
+
+            {/* ── ID Copy Upload ─────────────────────────────────────────────── */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                <Upload className="w-4 h-4 inline mr-2" />
+                ID Copy Upload
+                <span className="ml-1 text-red-500">*</span>
+              </label>
+
+              {/* Info box */}
+              <div className="flex gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-xs text-blue-700">
+                <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-500" />
+                <div>
+                  <p className="font-semibold mb-0.5">Requirements:</p>
+                  <ul className="list-disc list-inside space-y-0.5">
+                    <li>Upload <strong>both sides</strong> of your NIC as separate images, <strong>or</strong> a single PDF containing both sides.</li>
+                    <li>Accepted image formats: JPEG, PNG, WebP &mdash; max <strong>5 MB</strong> per image.</li>
+                    <li>Accepted PDF: max <strong>10 MB</strong>.</li>
+                    <li>Ensure the ID is clearly visible and not blurry.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Mode selector */}
+              <div className="flex gap-3 mb-4">
                 <button
-                  key={level.value}
                   type="button"
-                  onClick={() => handleToggleEducationLevel(level.value)}
-                  className={`p-4 border-2 rounded-lg text-center transition-all ${
-                    formData.educationLevels.includes(level.value)
+                  onClick={() => switchMode("image")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                    uploadMode === "image"
                       ? "border-purple-500 bg-purple-50 text-purple-700"
-                      : "border-slate-300 text-slate-700 hover:border-slate-400"
+                      : "border-slate-200 text-slate-600 hover:border-purple-300 hover:bg-purple-50/50"
                   }`}
                 >
-                  <div className="text-sm font-medium">{level.label}</div>
+                  <ImageIcon className="w-4 h-4" />
+                  Images (Front &amp; Back)
                 </button>
-              ))}
-            </div>
-            {errors.educationLevels && (
-              <p className="mt-1 text-sm text-red-600">{errors.educationLevels}</p>
-            )}
-          </div>
+                <button
+                  type="button"
+                  onClick={() => switchMode("pdf")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                    uploadMode === "pdf"
+                      ? "border-purple-500 bg-purple-50 text-purple-700"
+                      : "border-slate-200 text-slate-600 hover:border-purple-300 hover:bg-purple-50/50"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  PDF Document
+                </button>
+              </div>
 
-          {/* Years of Tutoring Experience */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <Clock className="w-4 h-4 inline mr-2" />
-              Years of Tutoring Experience
-            </label>
-            <select
-              value={formData.yearsExperience}
-              onChange={(e) => {
-                setFormData({ ...formData, yearsExperience: e.target.value })
-                setErrors(prev => ({ ...prev, yearsExperience: "" }))
-              }}
-              className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all ${
-                errors.yearsExperience ? "border-red-500" : "border-slate-300"
-              }`}
-            >
-              <option value="">Select your experience</option>
-              {experienceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {errors.yearsExperience && (
-              <p className="mt-1 text-sm text-red-600">{errors.yearsExperience}</p>
-            )}
-          </div>
+              {/* Image upload UI */}
+              {uploadMode === "image" && (
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Front side */}
+                  <div>
+                    <p className="text-xs font-medium text-slate-600 mb-1.5">Front Side</p>
+                    {frontFile ? (
+                      <div className="relative rounded-lg overflow-hidden border border-green-300 bg-green-50">
+                        <img
+                          src={frontFile.url}
+                          alt="NIC front"
+                          className="w-full h-28 object-cover"
+                        />
+                        <div className="absolute top-1.5 right-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setFrontFile(null)}
+                            className="bg-white rounded-full p-0.5 shadow hover:bg-red-50"
+                          >
+                            <X className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 text-white text-xs py-1 flex items-center justify-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Uploaded
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => frontRef.current?.click()}
+                        disabled={uploadingFront}
+                        className={`w-full h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                          frontError
+                            ? "border-red-400 bg-red-50 hover:border-red-500 hover:bg-red-50"
+                            : "border-slate-300 hover:border-purple-400 hover:bg-purple-50/50"
+                        }`}
+                      >
+                        {uploadingFront ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600" />
+                        ) : frontError ? (
+                          <>
+                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                            <span className="text-xs font-semibold text-red-600">File rejected</span>
+                            <span className="text-xs text-red-500 text-center px-2 leading-tight">{frontError}</span>
+                            <span className="text-xs text-slate-400 mt-0.5">Click to choose another</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-5 h-5 text-slate-400" />
+                            <span className="text-xs text-slate-500">Click to upload</span>
+                            <span className="text-xs text-slate-400">JPEG, PNG, WebP · max 5 MB</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    <input
+                      ref={frontRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleFrontUpload}
+                    />
+                  </div>
 
-          {/* Error Message */}
-          {errors.submit && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.submit}</p>
+                  {/* Back side */}
+                  <div>
+                    <p className="text-xs font-medium text-slate-600 mb-1.5">Back Side</p>
+                    {backFile ? (
+                      <div className="relative rounded-lg overflow-hidden border border-green-300 bg-green-50">
+                        <img
+                          src={backFile.url}
+                          alt="NIC back"
+                          className="w-full h-28 object-cover"
+                        />
+                        <div className="absolute top-1.5 right-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setBackFile(null)}
+                            className="bg-white rounded-full p-0.5 shadow hover:bg-red-50"
+                          >
+                            <X className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-green-600/80 text-white text-xs py-1 flex items-center justify-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Uploaded
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => backRef.current?.click()}
+                        disabled={uploadingBack}
+                        className={`w-full h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                          backError
+                            ? "border-red-400 bg-red-50 hover:border-red-500 hover:bg-red-50"
+                            : "border-slate-300 hover:border-purple-400 hover:bg-purple-50/50"
+                        }`}
+                      >
+                        {uploadingBack ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600" />
+                        ) : backError ? (
+                          <>
+                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                            <span className="text-xs font-semibold text-red-600">File rejected</span>
+                            <span className="text-xs text-red-500 text-center px-2 leading-tight">{backError}</span>
+                            <span className="text-xs text-slate-400 mt-0.5">Click to choose another</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-5 h-5 text-slate-400" />
+                            <span className="text-xs text-slate-500">Click to upload</span>
+                            <span className="text-xs text-slate-400">JPEG, PNG, WebP · max 5 MB</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    <input
+                      ref={backRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleBackUpload}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* PDF upload UI */}
+              {uploadMode === "pdf" && (
+                <div>
+                  {pdfFile ? (
+                    <div className="flex items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
+                      <FileText className="w-8 h-8 text-green-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-700 truncate">{pdfFile.name}</p>
+                        <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
+                          <CheckCircle className="w-3 h-3" /> Uploaded successfully
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPdfFile(null)}
+                        className="flex-shrink-0 p-1 rounded-full hover:bg-red-100"
+                      >
+                        <X className="w-4 h-4 text-red-400" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => pdfRef.current?.click()}
+                      disabled={uploadingPdf}
+                      className={`w-full py-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                        pdfError
+                          ? "border-red-400 bg-red-50 hover:border-red-500 hover:bg-red-50"
+                          : "border-slate-300 hover:border-purple-400 hover:bg-purple-50/50"
+                      }`}
+                    >
+                      {uploadingPdf ? (
+                        <>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600" />
+                          <span className="text-sm text-slate-500">Uploading PDF…</span>
+                        </>
+                      ) : pdfError ? (
+                        <>
+                          <AlertCircle className="w-7 h-7 text-red-500" />
+                          <span className="text-sm font-semibold text-red-600">File rejected</span>
+                          <span className="text-xs text-red-500 text-center px-4 leading-tight">{pdfError}</span>
+                          <span className="text-xs text-slate-400 mt-0.5">Click to choose another</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-8 h-8 text-slate-400" />
+                          <span className="text-sm font-medium text-slate-600">Click to upload PDF</span>
+                          <span className="text-xs text-slate-400">PDF containing both NIC sides · max 10 MB</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <input
+                    ref={pdfRef}
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={handlePdfUpload}
+                  />
+                </div>
+              )}
+
+              {/* Upload error */}
+              {errors.idCopy && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {errors.idCopy}
+                </p>
+              )}
             </div>
-          )}
+            {/* ── End ID Copy Upload ──────────────────────────────────────────── */}
+
+            {/* Submit error */}
+            {errors.submit && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{errors.submit}</p>
+              </div>
+            )}
           </div>
         </div>
 

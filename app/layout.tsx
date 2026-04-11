@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist, Geist_Mono, Delicious_Handrawn, Bitcount_Grid_Double } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
@@ -17,6 +17,18 @@ const geistMono = Geist_Mono({
   preload: true,
   variable: "--font-geist-mono",
 })
+const deliciousHandrawn = Delicious_Handrawn({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-delicious-handrawn",
+})
+const bitcountGridDouble = Bitcount_Grid_Double({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-bitcount-grid-double",
+})
 
 export const metadata: Metadata = {
   title: "TutorLink | Smart Student Tutor Connect Platform",
@@ -32,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${deliciousHandrawn.variable} ${bitcountGridDouble.variable}`}>
       <body className={`font-sans antialiased`}>
         {children}
         <Analytics />
