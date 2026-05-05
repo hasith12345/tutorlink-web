@@ -228,15 +228,15 @@ export default function SearchPage() {
 
         {/* Airbnb-Style Search Bar */}
         <div className="mb-8">
-          <h1 className="text-5xl md:text-6xl fo text-gray-900 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
+          <h1 className="text-5xl md:text-6xl fo text-gray-900 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }} data-aos="fade-down">
             Find Your Perfect Tutor
           </h1>
-          <p className="text-5xl md:text-2xl fo text-gray-400 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
+          <p className="text-5xl md:text-2xl fo text-gray-400 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }} data-aos="fade-up" data-aos-delay="150">
             Search by subject, tutor name, or location
           </p>
 
           {/* Pill-shaped Search Container */}
-          <div className="max-w-5xl mx-auto relative z-10">
+          <div className="max-w-5xl mx-auto relative z-10" data-aos="fade-up" data-aos-delay="250">
             <div className="bg-white backdrop-blur-sm rounded-full shadow-lg border border-gray-200 hover:shadow-xl transition-shadow overflow-visible">
               <div className="flex flex-col md:flex-row items-stretch relative">
                 {/* Subject/What Section */}
@@ -380,7 +380,7 @@ export default function SearchPage() {
         {/* Search Results */}
         {hasSearched && (
           <div className="relative z-0">
-            <div className="mb-6">
+            <div className="mb-6" data-aos="fade-up">
               <h2 className="text-2xl font-bold text-gray-900">
                 {searchResults.length > 0 ? `Found ${searchResults.length} tutor${searchResults.length !== 1 ? 's' : ''}` : 'No tutors found'}
               </h2>
@@ -400,8 +400,10 @@ export default function SearchPage() {
               </div>
             ) : searchResults.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {searchResults.map((tutor) => (
-                  <TutorCard key={tutor.id} tutor={tutor} />
+                {searchResults.map((tutor, index) => (
+                  <div key={tutor.id} data-aos="fade-up" data-aos-delay={Math.min(index * 80, 400)}>
+                    <TutorCard tutor={tutor} />
+                  </div>
                 ))}
               </div>
             ) : (

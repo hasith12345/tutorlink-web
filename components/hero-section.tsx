@@ -84,23 +84,33 @@ export function HeroSection() {
       <div className="z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full pt-44 pb-10">
         <p
           className="text-3xl md:text-3xl fo text-white  text-center" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}
-          
+          data-aos="fade-down"
+          data-aos-delay="100"
         >
           Smart way to learn
         </p>
 
-        <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight drop-shadow-lg">
+        <h1
+          className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight drop-shadow-lg"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
           Innovative
           <br />
           Learning
         </h1>
 
-        <p className="text-5xl md:text-2xl fo text-white mb-8 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
+        <p
+          className="text-5xl md:text-2xl fo text-white mb-8 text-center"
+          style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+          data-aos="fade-up"
+          data-aos-delay="350"
+        >
           <span>TutorLink connects students and tutors through a secure, smart platform </span><br />
-          <span>for easy class discovery, enrollment, and learning access.</span> 
+          <span>for easy class discovery, enrollment, and learning access.</span>
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center" data-aos="fade-up" data-aos-delay="500">
           
             <Button
               size="lg"

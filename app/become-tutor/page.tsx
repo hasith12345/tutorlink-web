@@ -113,7 +113,7 @@ export default function BecomeTutorPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16 lg:pt-16 lg:pb-25">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
-            <div className="text-center lg:text-left space-y-6">
+            <div className="text-center lg:text-left space-y-6" data-aos="fade-right">
               <Badge className="bg-indigo-200 text-indigo-800 border-0 backdrop-blur-sm px-4 py-2 text-sm font-medium">
                 <MapPin className="w-4 h-4 mr-2 inline" />
                 Trusted by tutors across Sri Lanka
@@ -178,7 +178,7 @@ export default function BecomeTutorPage() {
       {/* How It Works Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16" data-aos="fade-up">
             <p className="text-gray-600 text-sm font-medium mb-2">Simple Process</p>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               How It Works
@@ -193,10 +193,10 @@ export default function BecomeTutorPage() {
             <div className="relative">
               {/* Connecting Line */}
               <div className="absolute top-[60px] left-[80px] right-[80px] h-[2px] bg-gray-300 hidden md:block" />
-              
+
               <div className="grid md:grid-cols-3 gap-8 md:gap-4">
                 {/* Step 1 */}
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="0">
                   <div className="relative z-10 w-[100px] h-[100px] bg-blue-500 rounded-2xl flex items-center justify-center mb-6">
                     <span className="text-white text-5xl font-bold">1</span>
                   </div>
@@ -209,7 +209,7 @@ export default function BecomeTutorPage() {
                 </div>
 
                 {/* Step 2 */}
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="150">
                   <div className="relative z-10 w-[100px] h-[100px] bg-blue-200 rounded-2xl flex items-center justify-center mb-6">
                     <span className="text-gray-900 text-5xl font-bold">2</span>
                   </div>
@@ -222,7 +222,7 @@ export default function BecomeTutorPage() {
                 </div>
 
                 {/* Step 3 */}
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="300">
                   <div className="relative z-10 w-[100px] h-[100px] bg-blue-200 rounded-2xl flex items-center justify-center mb-6">
                     <span className="text-gray-900 text-5xl font-bold">3</span>
                   </div>
@@ -238,7 +238,7 @@ export default function BecomeTutorPage() {
           </div>
 
           {/* CTA Button */}
-          <div className="text-center">
+          <div className="text-center" data-aos="fade-up" data-aos-delay="150">
             <Button
               size="lg"
               onClick={() => router.push('/register')}
@@ -253,7 +253,7 @@ export default function BecomeTutorPage() {
       {/* Benefits Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16" data-aos="fade-up">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Benefits of Teaching on TutorLink
             </h2>
@@ -264,7 +264,7 @@ export default function BecomeTutorPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="border-1 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white">
+              <Card key={index} className="border-1 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white" data-aos="fade-up" data-aos-delay={index * 150}>
                 <CardContent className="p-8">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mb-6">
                     <benefit.icon className="w-8 h-8 text-white" />
@@ -287,7 +287,7 @@ export default function BecomeTutorPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Features List */}
-            <div>
+            <div data-aos="fade-right">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
                 Why tutors love TutorLink
               </h2>
@@ -297,7 +297,7 @@ export default function BecomeTutorPage() {
 
               <div className="space-y-6">
                 {features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-4">
+                  <div key={index} className="flex items-center gap-4" data-aos="fade-up" data-aos-delay={index * 80}>
                     <div className="flex-shrink-0">
                       <feature.icon className="w-6 h-6 text-indigo-600" strokeWidth={1.5} />
                     </div>
@@ -313,7 +313,7 @@ export default function BecomeTutorPage() {
             </div>
 
             {/* Right - Image/Stats */}
-            <div className="relative">
+            <div className="relative" data-aos="fade-left" data-aos-delay="200">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/50 to-purple-200/50 rounded-3xl blur-3xl" />
               <Card className="relative border-0 shadow-2xl bg-gradient-to-br from-white to-gray-50">
                 <CardContent className="p-8">
@@ -357,7 +357,7 @@ export default function BecomeTutorPage() {
       {/* Testimonials Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16" data-aos="fade-up">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Hear from our tutors
             </h2>
@@ -368,7 +368,7 @@ export default function BecomeTutorPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white">
+              <Card key={index} className="border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white" data-aos="fade-up" data-aos-delay={index * 150}>
                 <CardContent className="p-8">
                   <div className="flex items-center gap-1 mb-4">
                     {Array.from({ length: testimonial.rating }).map((_, i) => (
@@ -401,7 +401,7 @@ export default function BecomeTutorPage() {
       {/* Final CTA Section */}
       <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-aos="zoom-in">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Get paid to teach online in Sri Lanka
           </h2>
