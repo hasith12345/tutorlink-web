@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { authStorage } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,14 @@ import {
 
 export default function BecomeTutorPage() {
   const router = useRouter()
+  const [tutorCtaRoute, setTutorCtaRoute] = useState('/register')
+
+  useEffect(() => {
+    const userData = authStorage.getUser()
+    if (userData && !userData.hasTutorProfile) {
+      setTutorCtaRoute('/add-tutor-profile')
+    }
+  }, [])
 
   const steps = [
     {
@@ -129,14 +138,6 @@ export default function BecomeTutorPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <Button
-                  size="lg"
-                  onClick={() => router.push('/register')}
-                  className="bg-indigo-500 text-white hover:bg-indigo-600 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 font-semibold"
-                >
-                  Start Teaching Today
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
 
                 <Button
                   size="lg"
@@ -241,7 +242,7 @@ export default function BecomeTutorPage() {
           <div className="text-center" data-aos="fade-up" data-aos-delay="150">
             <Button
               size="lg"
-              onClick={() => router.push('/register')}
+              onClick={() => router.push(tutorCtaRoute)}
               className="bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 text-white text-lg px-12 py-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Create a tutor profile now
@@ -412,7 +413,7 @@ export default function BecomeTutorPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => router.push('/register')}
+              onClick={() => router.push(tutorCtaRoute)}
               className="bg-white text-indigo-600 hover:bg-gray-100 text-lg px-10 py-7 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 font-bold"
             >
               Create Your Profile Now

@@ -507,8 +507,7 @@ export default function ProfilePage() {
               )}
 
               {/* Basic Information Section */}
-              <div>
-                <h4 className="text-lg font-semibold text-slate-800 mb-4">Basic Information</h4>
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Full Name
@@ -521,15 +520,23 @@ export default function ProfilePage() {
                     placeholder="Enter your full name"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={profile?.email || ''}
+                    disabled
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
+                  />
+                </div>
               </div>
 
               {/* Student Profile Section */}
               {profile?.hasStudentProfile && (
                 <div className="border-t border-slate-200 pt-6">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <GraduationCap className="w-5 h-5 text-blue-600" />
-                    <h4 className="text-lg font-semibold text-slate-800">Student Profile</h4>
-                  </div>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -648,10 +655,6 @@ export default function ProfilePage() {
               {/* Tutor Profile Section */}
               {profile?.hasTutorProfile && (
                 <div className="border-t border-slate-200 pt-6">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <BookOpen className="w-5 h-5 text-green-600" />
-                    <h4 className="text-lg font-semibold text-slate-800">Tutor Profile</h4>
-                  </div>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">

@@ -1,10 +1,18 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Rocket, Pencil, Atom } from "lucide-react"
 import Image from "next/image"
+import { authStorage } from "@/lib/api"
 
 export function HeroSection() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const token = authStorage.getToken()
+    setIsLoggedIn(!!token)
+  }, [])
   return (
     <section className="relative bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 overflow-hidden min-h-[100vh] flex pt-8 -mt-20">
       
@@ -110,16 +118,18 @@ export function HeroSection() {
           <span>for easy class discovery, enrollment, and learning access.</span>
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center" data-aos="fade-up" data-aos-delay="500">
-          
-            <Button
-              size="lg"
-              className="bg-white hover:bg-gray-100 text-indigo-600 text-base font-semibold px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wide">
-              <a href="/register">
-              REGISTER
-              </a>
-            </Button>
-          
+        <div className={`flex flex-col sm:flex-row gap-6 justify-center items-center ${isLoggedIn ? 'sm:flex-row' : 'flex-col sm:flex-row'}`} data-aos="fade-up" data-aos-delay="500">
+
+            {!isLoggedIn && (
+              <Button
+                size="lg"
+                className="bg-white hover:bg-gray-100 text-indigo-600 text-base font-semibold px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wide">
+                <a href="/register">
+                REGISTER
+                </a>
+              </Button>
+            )}
+
 
           <Button
             size="lg"

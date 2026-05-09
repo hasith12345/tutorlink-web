@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef, Profiler } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, MessageSquare, Calendar, DollarSign, Star, CheckCheck, User } from "lucide-react"
+import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, MessageSquare, Calendar, DollarSign, Star, CheckCheck, User, ArrowLeftRight } from "lucide-react"
 import { authStorage } from "@/lib/api"
 
 export function Navbar() {
@@ -158,17 +158,19 @@ export function Navbar() {
           {/* Desktop Buttons */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">{isLoggedIn ? (
               <>
-                {/* Find a Tutor Button */}
-                <Button
-                  onClick={() => router.push('/search')}
-                  variant="ghost"
-                  className={`text-1xl md:text-1xl fo text-center transition-colors duration-300 ${
-                    isTransparent ? 'text-white hover:bg-white/20 hover:text-white' : 'text-gray-800'
-                  }`} style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
-                >
-                  <UserSearch className="w-4 h-4 mr-2" />
-                  Find a Tutor
-                </Button>
+                {/* Find a Tutor Button - Hide on search page */}
+                {!isSearchPage && (
+                  <Button
+                    onClick={() => router.push('/search')}
+                    variant="ghost"
+                    className={`text-1xl md:text-1xl fo text-center transition-colors duration-300 ${
+                      isTransparent ? 'text-white hover:bg-white/20 hover:text-white' : 'text-gray-800'
+                    }`} style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+                  >
+                    <UserSearch className="w-4 h-4 mr-2" />
+                    Find a Tutor
+                  </Button>
+                )}
 
                 {/* Become a Tutor Button */}
                 {activeRole !== 'tutor' && (
@@ -291,6 +293,18 @@ export function Navbar() {
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           Dashboard
+                        </button>
+                      )}
+                      {user?.hasStudentProfile && user?.hasTutorProfile && (
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            router.push('/select-role')
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        >
+                          <ArrowLeftRight className="w-4 h-4" />
+                          Switch Account
                         </button>
                       )}
                       <button
