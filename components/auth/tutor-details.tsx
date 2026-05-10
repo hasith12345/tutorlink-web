@@ -9,6 +9,7 @@ import {
   AlertCircle, Info
 } from "lucide-react"
 import { api, authStorage } from "@/lib/api"
+import { SubjectSelector } from "@/components/subject-selector"
 
 interface TutorDetailsProps {
   onBack: () => void
@@ -51,16 +52,41 @@ async function uploadIdFile(file: File): Promise<string> {
   return data.url as string
 }
 
+// ─── Helper: upload CV to /api/upload/cv ──────────────────────────────────────
+async function uploadCvFile(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const res = await fetch("http://localhost:5001/api/upload/cv", {
+    method: "POST",
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Upload failed" }))
+    throw new Error(err.message || "Upload failed")
+  }
+  const data = await res.json()
+  return data.url as string
+}
+
 export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps) {
   const router = useRouter()
   const [formData, setFormData] = useState({
     dob: "",
     phone: "",
     address: "",
-    idNumber: ""
+    idNumber: "",
+    qualifications: [""],
+    subjects: [""],
+    experience: [""]
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // ── CV Upload state ───────────────────────────────────────────────────────
+  const [cvFile, setCvFile] = useState<UploadedFile | null>(null)
+  const [uploadingCv, setUploadingCv] = useState(false)
+  const [cvError, setCvError] = useState("")
+  const cvRef = useRef<HTMLInputElement>(null)
 
   // ── ID Copy state ──────────────────────────────────────────────────────────
   const [uploadMode, setUploadMode] = useState<UploadMode>(null)
@@ -106,6 +132,14 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
       newErrors.idNumber = "ID number is required"
     } else if (!/^\d{9}[Vv]$|^\d{12}$/.test(formData.idNumber)) {
       newErrors.idNumber = "Please enter a valid NIC number (9 digits + V or 12 digits)"
+    }
+
+    if (!formData.qualifications.some(q => q.trim())) {
+      newErrors.qualifications = "At least one qualification is required"
+    }
+
+    if (!formData.subjects.some(s => s.trim())) {
+      newErrors.subjects = "At least one subject taught is required"
     }
 
     // ID copy validation
@@ -198,6 +232,32 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
     }
   }
 
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    const CV_ALLOWED = [...ALLOWED_IMAGE_TYPES, "application/pdf"]
+    if (!CV_ALLOWED.includes(file.type)) {
+      setCvError("Only JPEG, PNG, WebP, PDF are accepted")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2)
+      setCvError(`File too large (${sizeMB} MB). Max 5 MB.`)
+      return
+    }
+    setCvError("")
+    setUploadingCv(true)
+    try {
+      const url = await uploadCvFile(file)
+      setCvFile({ url, name: file.name, type: "document" })
+    } catch (err: unknown) {
+      setCvError(err instanceof Error ? err.message : "CV upload failed")
+    } finally {
+      setUploadingCv(false)
+    }
+  }
+
   const switchMode = (mode: UploadMode) => {
     setUploadMode(mode)
     setFrontFile(null)
@@ -228,6 +288,10 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
         idCopyFront: frontFile?.url,
         idCopyBack:  backFile?.url,
         idCopyPdf:   pdfFile?.url,
+        qualifications: formData.qualifications.filter(q => q.trim()).join(" | "),
+        subjects: formData.subjects.filter(s => s.trim()),
+        experience: formData.experience.filter(e => e.trim()).join(" | "),
+        cvUrl: cvFile?.url,
       })
 
       router.push(`/verify-email?email=${encodeURIComponent(userData.email)}`)
@@ -285,7 +349,7 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 <Calendar className="w-4 h-4 inline mr-2" />
-                Date of Birth
+                Date of Birth <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -300,7 +364,7 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 <Phone className="w-4 h-4 inline mr-2" />
-                Phone Number
+                Phone Number <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
@@ -316,7 +380,7 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 <MapPin className="w-4 h-4 inline mr-2" />
-                Address
+                Address <span className="text-red-500">*</span>
               </label>
               <textarea
                 placeholder="Enter your address"
@@ -332,7 +396,7 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 <CreditCard className="w-4 h-4 inline mr-2" />
-                ID Number (NIC)
+                ID Number (NIC) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -342,6 +406,151 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all ${errors.idNumber ? "border-red-500" : "border-slate-300"}`}
               />
               {errors.idNumber && <p className="mt-1 text-sm text-red-600">{errors.idNumber}</p>}
+            </div>
+
+            {/* Qualifications */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5.951-1.429 5.951 1.429a1 1 0 001.169-1.409l-7-14z"/></svg>
+                  Qualifications <span className="text-red-500">*</span>
+                </span>
+              </label>
+              <div className="space-y-2">
+                {formData.qualifications.map((qual, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g., BSc in Mathematics, MSc in Education..."
+                      value={qual}
+                      onChange={(e) => {
+                        const newQuals = [...formData.qualifications]
+                        newQuals[idx] = e.target.value
+                        setFormData({ ...formData, qualifications: newQuals })
+                        setErrors(prev => ({ ...prev, qualifications: "" }))
+                      }}
+                      className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all ${errors.qualifications && idx === 0 ? "border-red-500" : "border-slate-300"}`}
+                    />
+                    {formData.qualifications.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQuals = formData.qualifications.filter((_, i) => i !== idx)
+                          setFormData({ ...formData, qualifications: newQuals })
+                        }}
+                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, qualifications: [...formData.qualifications, ""] })}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                >
+                  + Add another qualification
+                </button>
+              </div>
+              {errors.qualifications && <p className="mt-1 text-sm text-red-600">{errors.qualifications}</p>}
+            </div>
+
+            {/* Subjects Taught */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"/></svg>
+                  Subjects Taught <span className="text-red-500">*</span>
+                </span>
+              </label>
+              <SubjectSelector
+                values={formData.subjects}
+                onChange={(subjects) => {
+                  setFormData({ ...formData, subjects })
+                  setErrors(prev => ({ ...prev, subjects: "" }))
+                }}
+                onError={(error) => setErrors(prev => ({ ...prev, subjects: error }))}
+              />
+              {errors.subjects && <p className="mt-1 text-sm text-red-600">{errors.subjects}</p>}
+            </div>
+
+            {/* Teaching Experience */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Teaching Experience
+                </span>
+              </label>
+              <div className="space-y-2">
+                {formData.experience.map((exp, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <textarea
+                      placeholder="e.g., 5 years of teaching A/L Mathematics, Private tuition since 2020..."
+                      value={exp}
+                      onChange={(e) => {
+                        const newExperience = [...formData.experience]
+                        newExperience[idx] = e.target.value
+                        setFormData({ ...formData, experience: newExperience })
+                      }}
+                      rows={2}
+                      className="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all resize-none"
+                    />
+                    {formData.experience.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newExperience = formData.experience.filter((_, i) => i !== idx)
+                          setFormData({ ...formData, experience: newExperience })
+                        }}
+                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors h-fit"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, experience: [...formData.experience, ""] })}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                >
+                  + Add another experience
+                </button>
+              </div>
+            </div>
+
+            {/* ── CV Upload (Optional) ────────────────────────────────────────── */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <FileText className="w-4 h-4 inline mr-2" />
+                Upload CV <span className="text-slate-400 font-normal">(optional)</span>
+              </label>
+              {cvFile ? (
+                <div className="flex items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
+                  <FileText className="w-8 h-8 text-green-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-700 truncate">{cvFile.name}</p>
+                    <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5"><CheckCircle className="w-3 h-3" /> Uploaded</p>
+                  </div>
+                  <button type="button" onClick={() => setCvFile(null)} className="p-1 rounded-full hover:bg-red-100">
+                    <X className="w-4 h-4 text-red-400" />
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => cvRef.current?.click()} disabled={uploadingCv}
+                  className={`w-full py-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-60 ${cvError ? "border-red-400 bg-red-50" : "border-slate-300 hover:border-purple-400 hover:bg-purple-50/50"}`}>
+                  {uploadingCv ? (
+                    <><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600" /><span className="text-sm text-slate-500">Uploading…</span></>
+                  ) : cvError ? (
+                    <><AlertCircle className="w-7 h-7 text-red-500" /><span className="text-xs text-red-500 text-center px-4">{cvError}</span></>
+                  ) : (
+                    <><FileText className="w-8 h-8 text-slate-400" /><span className="text-sm font-medium text-slate-600">Click to upload CV</span><span className="text-xs text-slate-400">PDF or images · max 5 MB</span></>
+                  )}
+                </button>
+              )}
+              <input ref={cvRef} type="file" accept="application/pdf,image/jpeg,image/jpg,image/png,image/webp" className="hidden" onChange={handleCvUpload} />
             </div>
 
             {/* ── ID Copy Upload ─────────────────────────────────────────────── */}

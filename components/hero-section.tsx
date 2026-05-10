@@ -1,10 +1,18 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Rocket, Pencil, Atom } from "lucide-react"
 import Image from "next/image"
+import { authStorage } from "@/lib/api"
 
 export function HeroSection() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const token = authStorage.getToken()
+    setIsLoggedIn(!!token)
+  }, [])
   return (
     <section className="relative bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 overflow-hidden min-h-[100vh] flex pt-8 -mt-20">
       
@@ -84,32 +92,44 @@ export function HeroSection() {
       <div className="z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full pt-44 pb-10">
         <p
           className="text-3xl md:text-3xl fo text-white  text-center" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}
-          
+          data-aos="fade-down"
+          data-aos-delay="100"
         >
           Smart way to learn
         </p>
 
-        <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight drop-shadow-lg">
+        <h1
+          className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight drop-shadow-lg"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
           Innovative
           <br />
           Learning
         </h1>
 
-        <p className="text-5xl md:text-2xl fo text-white mb-8 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
+        <p
+          className="text-5xl md:text-2xl fo text-white mb-8 text-center"
+          style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+          data-aos="fade-up"
+          data-aos-delay="350"
+        >
           <span>TutorLink connects students and tutors through a secure, smart platform </span><br />
-          <span>for easy class discovery, enrollment, and learning access.</span> 
+          <span>for easy class discovery, enrollment, and learning access.</span>
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          
-            <Button
-              size="lg"
-              className="bg-white hover:bg-gray-100 text-indigo-600 text-base font-semibold px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wide">
-              <a href="/register">
-              REGISTER
-              </a>
-            </Button>
-          
+        <div className={`flex flex-col sm:flex-row gap-6 justify-center items-center ${isLoggedIn ? 'sm:flex-row' : 'flex-col sm:flex-row'}`} data-aos="fade-up" data-aos-delay="500">
+
+            {!isLoggedIn && (
+              <Button
+                size="lg"
+                className="bg-white hover:bg-gray-100 text-indigo-600 text-base font-semibold px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wide">
+                <a href="/register">
+                REGISTER
+                </a>
+              </Button>
+            )}
+
 
           <Button
             size="lg"

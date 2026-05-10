@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import {
   Menu,
   X,
@@ -17,7 +16,7 @@ import {
   Users,
   Calendar,
   DollarSign,
-  LayoutDashboard,
+  ArrowLeftRight,
 } from "lucide-react"
 import { authStorage } from "@/lib/api"
 
@@ -219,10 +218,12 @@ export function TutorNavbar() {
                     <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                   </div>
                   <div className="py-1.5">
-                    <Link href="/tutor/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <LayoutDashboard className="w-4 h-4 text-gray-400" />
-                      Dashboard
-                    </Link>
+                    {user?.hasStudentProfile && user?.hasTutorProfile && (
+                      <Link href="/select-role" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <ArrowLeftRight className="w-4 h-4 text-gray-400" />
+                        Switch Account
+                      </Link>
+                    )}
                     <Link href="/dashboard/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                       <User className="w-4 h-4 text-gray-400" />
                       View Profile
@@ -231,9 +232,7 @@ export function TutorNavbar() {
                       <Settings className="w-4 h-4 text-gray-400" />
                       Settings
                     </Link>
-                  </div>
-                  <div className="border-t border-gray-100 py-1.5">
-                    <button onClick={handleLogout} className="flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full">
+                    <button onClick={handleLogout} className="flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full border-t border-gray-100 mt-1.5 pt-1.5">
                       <LogOut className="w-4 h-4" />
                       Log Out
                     </button>

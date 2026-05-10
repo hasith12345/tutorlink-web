@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef, Profiler } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, MessageSquare, Calendar, DollarSign, Star, CheckCheck, User } from "lucide-react"
+import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, MessageSquare, Calendar, DollarSign, Star, CheckCheck, User, ArrowLeftRight } from "lucide-react"
 import { authStorage } from "@/lib/api"
 
 export function Navbar() {
@@ -158,17 +158,19 @@ export function Navbar() {
           {/* Desktop Buttons */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">{isLoggedIn ? (
               <>
-                {/* Find a Tutor Button */}
-                <Button
-                  onClick={() => router.push('/search')}
-                  variant="ghost"
-                  className={`text-1xl md:text-1xl fo text-center transition-colors duration-300 ${
-                    isTransparent ? 'text-white hover:bg-white/20 hover:text-white' : 'text-gray-800'
-                  }`} style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
-                >
-                  <UserSearch className="w-4 h-4 mr-2" />
-                  Find a Tutor
-                </Button>
+                {/* Find a Tutor Button - Hide on search page */}
+                {!isSearchPage && (
+                  <Button
+                    onClick={() => router.push('/search')}
+                    variant="ghost"
+                    className={`text-1xl md:text-1xl fo text-center transition-colors duration-300 ${
+                      isTransparent ? 'text-white hover:bg-white/20 hover:text-white' : 'text-gray-800'
+                    }`} style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+                  >
+                    <UserSearch className="w-4 h-4 mr-2" />
+                    Find a Tutor
+                  </Button>
+                )}
 
                 {/* Become a Tutor Button */}
                 {activeRole !== 'tutor' && (
@@ -281,49 +283,55 @@ export function Navbar() {
 
                   {/* Dropdown Menu */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                      {activeRole === 'tutor' && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+                        <p className="font-semibold text-gray-900 text-sm truncate">{user?.fullName}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      <div className="py-1.5">
+                        {user?.hasStudentProfile && user?.hasTutorProfile && (
+                          <button
+                            onClick={() => {
+                              setIsProfileOpen(false)
+                              router.push('/select-role')
+                            }}
+                            className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <ArrowLeftRight className="w-4 h-4 text-gray-400" />
+                            Switch Account
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setIsProfileOpen(false)
-                            router.push('/dashboard')
+                            router.push('/dashboard/profile')
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          Dashboard
+                          <User className="w-4 h-4 text-gray-400" />
+                          View Profile
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          router.push('/dashboard/profile')
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      >
-                        <User className="w-4 h-4" />
-                        View Profile
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          router.push('/dashboard/settings')
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Settings
-                      </button>
-                      <div className="border-t border-gray-100 my-1" />
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          handleLogout()
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Logout
-                      </button>
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            router.push('/dashboard/settings')
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Settings className="w-4 h-4 text-gray-400" />
+                          Settings
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            handleLogout()
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1.5 pt-1.5"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Log Out
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

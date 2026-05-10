@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { authStorage, api } from "@/lib/api"
 import { TutorNavbar } from "@/components/tutor-navbar"
-import { CompleteTutorProfileModal } from "@/components/complete-tutor-profile-modal"
 import { MyClasses } from "@/components/my-classes"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -76,7 +75,6 @@ export default function TutorDashboardPage() {
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [tutorStatus, setTutorStatus] = useState<string>("NOT_SUBMITTED")
-  const [showProfileModal, setShowProfileModal] = useState(false)
   const [showWelcome, setShowWelcome] = useState(() => {
     if (typeof window === "undefined") return true
     return localStorage.getItem("tutorWelcomeDismissed") !== "true"
@@ -103,26 +101,26 @@ export default function TutorDashboardPage() {
       setUser(userData)
       authStorage.setActiveRole("tutor")
 
-      // Fetch tutor application status from API
+      // Fetch current user with role flags and tutor status
       try {
-        const statusRes = await api.getTutorApplicationStatus()
+        const [currentUserRes, statusRes] = await Promise.all([
+          api.getCurrentUser(),
+          api.getTutorApplicationStatus()
+        ])
+
         setTutorStatus(statusRes.tutorStatus)
 
-        // Update local storage with latest status
-        const updatedUser = { ...userData, tutorStatus: statusRes.tutorStatus }
-        authStorage.setUser(updatedUser)
-
-        // If NOT_SUBMITTED, show the modal
-        if (statusRes.tutorStatus === "NOT_SUBMITTED") {
-          setShowProfileModal(true)
+        // Sync user data with latest info from backend
+        const syncedUser = {
+          ...currentUserRes.user,
+          tutorStatus: statusRes.tutorStatus
         }
+        authStorage.setUser(syncedUser)
+        setUser(syncedUser)
+
       } catch (err) {
-        // If error, check localStorage
         const storedStatus = userData.tutorStatus || "NOT_SUBMITTED"
         setTutorStatus(storedStatus)
-        if (storedStatus === "NOT_SUBMITTED") {
-          setShowProfileModal(true)
-        }
       }
 
       setIsLoading(false)
@@ -130,17 +128,6 @@ export default function TutorDashboardPage() {
 
     init()
   }, [router])
-
-  const handleApplicationSubmitted = () => {
-    setShowProfileModal(false)
-    setTutorStatus("PENDING")
-    // Update localStorage
-    if (user) {
-      const updatedUser = { ...user, tutorStatus: "PENDING" }
-      authStorage.setUser(updatedUser)
-      setUser(updatedUser)
-    }
-  }
 
   if (isLoading) {
     return (
@@ -154,15 +141,28 @@ export default function TutorDashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
       <TutorNavbar />
 
-      {/* Complete Tutor Profile Modal */}
-      <CompleteTutorProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        onSubmitted={handleApplicationSubmitted}
-      />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* PENDING Banner */}
+        {/* NOT_SUBMITTED Banner - profile created but no details submitted */}
+        {tutorStatus === "NOT_SUBMITTED" && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-blue-800">Complete your tutor profile to get started</h3>
+              <p className="text-sm text-blue-700 mt-0.5">
+                You need to submit your qualifications, subjects, and ID documents before your profile can be reviewed.
+              </p>
+              <Button
+                onClick={() => router.push('/complete-tutor-application')}
+                size="sm"
+                className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Complete Profile
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* PENDING Banner - details submitted, awaiting admin review */}
         {tutorStatus === "PENDING" && (
           <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
@@ -182,15 +182,15 @@ export default function TutorDashboardPage() {
             <div>
               <h3 className="font-semibold text-red-800">Your tutor application was not approved</h3>
               <p className="text-sm text-red-700 mt-0.5">
-                Please update your profile and resubmit your application.
+                Please contact our support team or resubmit your profile for review.
               </p>
               <Button
-                onClick={() => setShowProfileModal(true)}
+                onClick={() => router.push('/tutor-application-status')}
                 variant="outline"
                 size="sm"
                 className="mt-2 border-red-300 text-red-700 hover:bg-red-100"
               >
-                Resubmit Application
+                View Application Status
               </Button>
             </div>
           </div>

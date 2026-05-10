@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Delicious_Handrawn, Bitcount_Grid_Double } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { AOSInit } from "../components/aos-init"
 import "./globals.css"
 
 // Configure fonts with display: swap to prevent FOUT/FOIT flash
@@ -46,6 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable} ${deliciousHandrawn.variable} ${bitcountGridDouble.variable}`}>
       <body className={`font-sans antialiased`}>
+        <AOSInit />
         {children}
         <Analytics />
       </body>

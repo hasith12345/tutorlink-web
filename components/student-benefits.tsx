@@ -28,7 +28,7 @@ export function StudentBenefits() {
   return (
     <section id="students" className="py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10" data-aos="fade-up">
           <span className="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-4">
             For Students
           </span>
@@ -45,6 +45,8 @@ export function StudentBenefits() {
             <Card
               key={index}
               className="bg-gray-50 border-0 rounded-2xl hover:shadow-lg transition-all duration-300 group"
+              data-aos="fade-up"
+              data-aos-delay={index * 100}
             >
               <CardContent className="p-6">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">

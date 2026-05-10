@@ -126,7 +126,7 @@ export function TutorGigsFeed() {
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-aos="fade-up">
           <h2 className="text-5xl md:text-4xl fo text-gray-900 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>Available Tutors</h2>
           <p className="text-5xl md:text-2xl fo text-gray-400 mb-2 text-center" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>Browse our community of qualified tutors ready to help you succeed</p>
         </div>
@@ -135,7 +135,11 @@ export function TutorGigsFeed() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <GigSkeleton key={i} />)
-            : gigs.map((gig, index) => <GigCard key={gig.id} gig={gig} index={index} />)}
+            : gigs.map((gig, index) => (
+                <div key={gig.id} data-aos="fade-up" data-aos-delay={Math.min(index * 60, 300)}>
+                  <GigCard gig={gig} index={index} />
+                </div>
+              ))}
         </div>
 
         {/* Load More */}

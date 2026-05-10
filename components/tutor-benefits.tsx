@@ -29,7 +29,7 @@ export function TutorBenefits() {
     <section id="tutors" className="py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+          <div data-aos="fade-right">
             <span className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
               For Tutors
             </span>
@@ -43,7 +43,7 @@ export function TutorBenefits() {
 
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-4">
+                <div key={index} className="flex items-start gap-4" data-aos="fade-up" data-aos-delay={index * 100}>
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 flex items-center justify-center shrink-0">
                     <benefit.icon className="w-6 h-6 text-white" />
                   </div>
@@ -56,7 +56,7 @@ export function TutorBenefits() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative" data-aos="fade-left" data-aos-delay="200">
             <Image
               src="/for-tutors.png"
               alt="For Tutors"

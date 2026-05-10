@@ -35,7 +35,7 @@ export default function HowTutorLinkWorks() {
     <section id="how-it-works" className="bg-white py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-800 mb-6 leading-tight drop-shadow-lg">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-800 mb-6 leading-tight drop-shadow-lg" data-aos="fade-up">
           How TutorLink works:
         </h2>
 
@@ -45,6 +45,8 @@ export default function HowTutorLinkWorks() {
             <div
               key={index}
               className="border border-gray-200 rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition"
+              data-aos="fade-up"
+              data-aos-delay={index * 150}
             >
               {/* Step Number */}
               <div

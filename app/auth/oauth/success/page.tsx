@@ -51,15 +51,15 @@ function OAuthSuccessContent() {
       const { hasStudentProfile, hasTutorProfile } = responseData.user
 
       // ✅ ROLE-BASED REDIRECT LOGIC - Redirect immediately
-      // Case 1: User has ONLY Student profile → redirect to home page
+      // Case 1: User has ONLY Student profile → redirect to search page
       if (hasStudentProfile && !hasTutorProfile) {
         authStorage.setActiveRole('student')
-        window.location.href = '/'
+        window.location.href = '/search'
       }
-      // Case 2: User has ONLY Tutor profile → redirect to dashboard
+      // Case 2: User has ONLY Tutor profile → redirect to tutor dashboard
       else if (hasTutorProfile && !hasStudentProfile) {
         authStorage.setActiveRole('tutor')
-        window.location.href = '/dashboard'
+        window.location.href = '/tutor/dashboard'
       }
       // Case 3: User has BOTH profiles → must select role
       else if (hasStudentProfile && hasTutorProfile) {

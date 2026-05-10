@@ -28,7 +28,7 @@ export function PlatformFeatures() {
   return (
     <section id="about" className="py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10" data-aos="fade-up">
           <span className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
             Platform Features
           </span>
@@ -45,6 +45,8 @@ export function PlatformFeatures() {
             <Card
               key={index}
               className="bg-gradient-to-br from-gray-50 to-gray-100/50 border-0 rounded-2xl hover:shadow-lg transition-all duration-300"
+              data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
+              data-aos-delay={index * 100}
             >
               <CardContent className="p-8 flex items-start gap-5">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 flex items-center justify-center shrink-0">
