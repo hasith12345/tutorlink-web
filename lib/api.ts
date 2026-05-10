@@ -145,6 +145,9 @@ export interface UpdateProfileData {
     idCopyFront?: string
     idCopyBack?: string
     idCopyPdf?: string
+    qualifications?: string
+    subjects?: string[]
+    experience?: string
   }
 }
 

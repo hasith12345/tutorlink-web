@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { SubjectSelector } from "@/components/subject-selector"
 import {
   ArrowLeft,
   BookOpen,
@@ -172,10 +173,10 @@ export default function CreateClassPage() {
                   <BookOpen className="w-4 h-4 text-indigo-500" />
                   Subject <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  value={form.subject}
-                  onChange={(e) => handleChange("subject", e.target.value)}
-                  placeholder="e.g., Mathematics - Calculus"
+                <SubjectSelector
+                  values={form.subject ? [form.subject] : []}
+                  onChange={(vals) => handleChange("subject", vals[vals.length - 1] || "")}
+                  placeholder="Search or select a subject..."
                 />
               </div>
 
