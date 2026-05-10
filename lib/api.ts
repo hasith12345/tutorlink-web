@@ -462,7 +462,7 @@ class ApiClient {
     venue?: string
     mode: string
     location?: string
-    date: string
+    schedule: string[]
     time: string
     duration: string
     fees: number
@@ -505,6 +505,14 @@ class ApiClient {
     const token = authStorage.getToken()
     return this.request(`/tutor/classes/${classId}/cancel`, {
       method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async deleteClass(classId: string): Promise<{ message: string }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}`, {
+      method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     })
   }

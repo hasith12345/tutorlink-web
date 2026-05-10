@@ -23,7 +23,6 @@ import { authStorage } from "@/lib/api"
 const navItems = [
   { label: "Dashboard", href: "/tutor/dashboard" },
   { label: "My Classes", href: "/tutor/classes" },
-  { label: "Schedule", href: "/tutor/schedule" },
   { label: "Students", href: "/tutor/students" },
   { label: "Earnings", href: "/tutor/earnings" },
   { label: "Messages", href: "/tutor/messages" },
