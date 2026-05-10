@@ -8,6 +8,7 @@ import { MyClasses } from "@/components/my-classes"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   Users,
   BookOpen,
@@ -132,7 +133,7 @@ export default function TutorDashboardPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin" />
+        <LoadingSpinner size="lg" />
       </div>
     )
   }
@@ -166,11 +167,17 @@ export default function TutorDashboardPage() {
         {tutorStatus === "PENDING" && (
           <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-            <div>
+            <div className="flex-1">
               <h3 className="font-semibold text-amber-800">Your tutor application is under review</h3>
               <p className="text-sm text-amber-700 mt-0.5">
                 You will be notified once your application is approved. Some features are disabled until approval.
               </p>
+              <button
+                onClick={() => router.push('/tutor-application-status')}
+                className="mt-3 text-xs font-medium text-amber-700 hover:text-amber-800 underline"
+              >
+                View Application Status →
+              </button>
             </div>
           </div>
         )}

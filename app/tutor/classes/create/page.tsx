@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   ArrowLeft,
   BookOpen,
@@ -118,7 +119,7 @@ export default function CreateClassPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin" />
+        <LoadingSpinner size="lg" />
       </div>
     )
   }

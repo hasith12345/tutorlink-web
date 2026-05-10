@@ -3,8 +3,9 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, Ban, X, Phone } from "lucide-react"
 import { api, authStorage } from "@/lib/api"
+import Link from "next/link"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -12,6 +13,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [showBannedModal, setShowBannedModal] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,10 +60,9 @@ export function LoginForm() {
 
     } catch (error: any) {
       console.error('Login error:', error)
-      
-      // Check if error is due to unverified email
-      if (error.message?.includes('verify your email')) {
-        // Redirect to verification page
+      if (error.message?.includes('banned')) {
+        setShowBannedModal(true)
+      } else if (error.message?.includes('verify your email')) {
         window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
       } else {
         setError(error instanceof Error ? error.message : 'An unexpected error occurred')
@@ -185,6 +186,38 @@ export function LoginForm() {
             By signing in, you agree to our <span className="underline cursor-pointer hover:text-blue-500">Terms</span> & <span className="underline cursor-pointer hover:text-blue-500">Privacy Policy</span>
         </p>
       </form>
+
+      {/* Banned Account Modal */}
+      {showBannedModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Ban className="w-7 h-7 text-red-600" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Account Banned</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your account has been suspended. Please contact our admin team to resolve this issue.
+            </p>
+            <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-lg px-4 py-3 mb-5">
+              <Phone className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">+94 77 123 4567</span>
+            </div>
+            <Link
+              href="/contact-us"
+              className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors mb-3"
+            >
+              Contact Support
+            </Link>
+            <button
+              onClick={() => setShowBannedModal(false)}
+              className="flex items-center justify-center gap-1.5 w-full py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

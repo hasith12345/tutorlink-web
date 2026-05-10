@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
-import { ArrowLeft, User, Mail, Calendar, Edit, GraduationCap, BookOpen, Loader2, X, Camera } from "lucide-react"
+import { ArrowLeft, User, Mail, Calendar, Edit, GraduationCap, BookOpen, Loader2, X, Camera, Phone, MapPin, CreditCard, School, Users, Award, BookMarked, Briefcase, Cake } from "lucide-react"
 import { api, authStorage, UserProfile, UpdateProfileData } from "@/lib/api"
 
 export default function ProfilePage() {
@@ -13,6 +13,12 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingTutorAvatar, setUploadingTutorAvatar] = useState(false)
+  const [tutorApplicationData, setTutorApplicationData] = useState<{
+    applicationStatus: string
+    qualifications: string | null
+    subjects: string[]
+    experience: string | null
+  } | null>(null)
   
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -47,25 +53,41 @@ export default function ProfilePage() {
           return
         }
 
-        const data = await api.getProfile()
-        setProfile(data)
+        const [data, appStatus] = await Promise.allSettled([
+          api.getProfile(),
+          api.getTutorApplicationStatus(),
+        ])
+
+        if (data.status === 'rejected') throw data.reason
+        const profileData = data.value
+
+        if (appStatus.status === 'fulfilled') {
+          setTutorApplicationData({
+            applicationStatus: appStatus.value.profile.applicationStatus,
+            qualifications: appStatus.value.profile.qualifications,
+            subjects: appStatus.value.profile.subjects,
+            experience: appStatus.value.profile.experience,
+          })
+        }
+
+        setProfile(profileData)
         // Initialize form data
         setFormData({
-          fullName: data.fullName,
+          fullName: profileData.fullName,
           student: {
-            dob: data.student?.dob || '',
-            phone: data.student?.phone || '',
-            address: data.student?.address || '',
-            schoolGrade: data.student?.schoolGrade || '',
-            schoolName: data.student?.schoolName || '',
-            parentName: data.student?.parentName || '',
-            parentPhone: data.student?.parentPhone || ''
+            dob: profileData.student?.dob || '',
+            phone: profileData.student?.phone || '',
+            address: profileData.student?.address || '',
+            schoolGrade: profileData.student?.schoolGrade || '',
+            schoolName: profileData.student?.schoolName || '',
+            parentName: profileData.student?.parentName || '',
+            parentPhone: profileData.student?.parentPhone || ''
           },
           tutor: {
-            dob: data.tutor?.dob || '',
-            phone: data.tutor?.phone || '',
-            address: data.tutor?.address || '',
-            idNumber: data.tutor?.idNumber || ''
+            dob: profileData.tutor?.dob || '',
+            phone: profileData.tutor?.phone || '',
+            address: profileData.tutor?.address || '',
+            idNumber: profileData.tutor?.idNumber || ''
           }
         })
       } catch (err) {
@@ -349,8 +371,8 @@ export default function ProfilePage() {
 
         {/* Profile Information */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-6">
-          <h2 className="text-xl font-bold text-slate-800 mb-6">Profile Information</h2>
-          
+          <h2 className="text-xl font-bold text-slate-800 mb-6">Personal Information</h2>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="flex items-start space-x-4">
               <User className="w-5 h-5 text-slate-400 mt-0.5" />
@@ -378,6 +400,46 @@ export default function ProfilePage() {
                 <p className="text-base text-slate-800 font-medium">{formatDate(profile.createdAt)}</p>
               </div>
             </div>
+
+            {(profile.student?.dob || profile.tutor?.dob) && (
+              <div className="flex items-start space-x-4">
+                <Cake className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-slate-500">Date of Birth</p>
+                  <p className="text-base text-slate-800 font-medium">{profile.student?.dob || profile.tutor?.dob}</p>
+                </div>
+              </div>
+            )}
+
+            {(profile.student?.phone || profile.tutor?.phone) && (
+              <div className="flex items-start space-x-4">
+                <Phone className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-slate-500">Phone Number</p>
+                  <p className="text-base text-slate-800 font-medium">{profile.student?.phone || profile.tutor?.phone}</p>
+                </div>
+              </div>
+            )}
+
+            {profile.tutor?.idNumber && (
+              <div className="flex items-start space-x-4">
+                <CreditCard className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-slate-500">ID Number</p>
+                  <p className="text-base text-slate-800 font-medium">{profile.tutor.idNumber}</p>
+                </div>
+              </div>
+            )}
+
+            {(profile.student?.address || profile.tutor?.address) && (
+              <div className="flex items-start space-x-4 sm:col-span-2">
+                <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-slate-500">Address</p>
+                  <p className="text-base text-slate-800 font-medium">{profile.student?.address || profile.tutor?.address}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -388,54 +450,45 @@ export default function ProfilePage() {
               <GraduationCap className="w-6 h-6 text-blue-600" />
               <h2 className="text-xl font-bold text-slate-800">Student Profile</h2>
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {profile.student.dob && (
-                <div>
-                  <p className="text-sm text-slate-500">Date of Birth</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.dob}</p>
-                </div>
-              )}
 
-              {profile.student.phone && (
-                <div>
-                  <p className="text-sm text-slate-500">Phone Number</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.phone}</p>
-                </div>
-              )}
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {profile.student.schoolGrade && (
-                <div>
-                  <p className="text-sm text-slate-500">School Grade</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.schoolGrade}</p>
+                <div className="flex items-start space-x-4">
+                  <GraduationCap className="w-5 h-5 text-slate-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-500">School Grade</p>
+                    <p className="text-base text-slate-800 font-medium">{profile.student.schoolGrade}</p>
+                  </div>
                 </div>
               )}
 
               {profile.student.schoolName && (
-                <div>
-                  <p className="text-sm text-slate-500">School Name</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.schoolName}</p>
+                <div className="flex items-start space-x-4">
+                  <School className="w-5 h-5 text-slate-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-500">School Name</p>
+                    <p className="text-base text-slate-800 font-medium">{profile.student.schoolName}</p>
+                  </div>
                 </div>
               )}
 
               {profile.student.parentName && (
-                <div>
-                  <p className="text-sm text-slate-500">Parent Name</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.parentName}</p>
+                <div className="flex items-start space-x-4">
+                  <Users className="w-5 h-5 text-slate-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-500">Parent Name</p>
+                    <p className="text-base text-slate-800 font-medium">{profile.student.parentName}</p>
+                  </div>
                 </div>
               )}
 
               {profile.student.parentPhone && (
-                <div>
-                  <p className="text-sm text-slate-500">Parent Phone</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.parentPhone}</p>
-                </div>
-              )}
-
-              {profile.student.address && (
-                <div className="sm:col-span-2">
-                  <p className="text-sm text-slate-500">Address</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.student.address}</p>
+                <div className="flex items-start space-x-4">
+                  <Phone className="w-5 h-5 text-slate-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-500">Parent Phone</p>
+                    <p className="text-base text-slate-800 font-medium">{profile.student.parentPhone}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -449,36 +502,66 @@ export default function ProfilePage() {
               <BookOpen className="w-6 h-6 text-green-600" />
               <h2 className="text-xl font-bold text-slate-800">Tutor Profile</h2>
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {profile.tutor.dob && (
-                <div>
-                  <p className="text-sm text-slate-500">Date of Birth</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.tutor.dob}</p>
-                </div>
-              )}
 
-              {profile.tutor.phone && (
-                <div>
-                  <p className="text-sm text-slate-500">Phone Number</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.tutor.phone}</p>
+            {tutorApplicationData?.applicationStatus === 'APPROVED' ? (
+              <div className="space-y-6">
+                {tutorApplicationData.qualifications && (
+                  <div className="flex items-start space-x-4">
+                    <Award className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-500 mb-2">Qualifications</p>
+                      <div className="flex flex-wrap gap-2">
+                        {tutorApplicationData.qualifications.split(' | ').map((q, i) => (
+                          <span key={i} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">{q}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {tutorApplicationData.subjects && tutorApplicationData.subjects.length > 0 && (
+                  <div className="flex items-start space-x-4">
+                    <BookMarked className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-500 mb-2">Subjects</p>
+                      <div className="flex flex-wrap gap-2">
+                        {tutorApplicationData.subjects.map((s, i) => (
+                          <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {tutorApplicationData.experience && (
+                  <div className="flex items-start space-x-4">
+                    <Briefcase className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-500 mb-2">Experience</p>
+                      <div className="flex flex-wrap gap-2">
+                        {tutorApplicationData.experience.split(' | ').map((e, i) => (
+                          <span key={i} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">{e}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="border-t border-slate-100 pt-6">
+                <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                  <Loader2 className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-amber-800">Pending Admin Approval</p>
+                    <p className="text-xs text-amber-600 mt-0.5">Qualifications, Subjects, and Experience will be visible here once your application is approved.</p>
+                    <button
+                      onClick={() => router.push('/tutor-application-status')}
+                      className="mt-3 text-xs font-medium text-amber-700 hover:text-amber-800 underline"
+                    >
+                      View Application Status →
+                    </button>
+                  </div>
                 </div>
-              )}
-
-              {profile.tutor.idNumber && (
-                <div>
-                  <p className="text-sm text-slate-500">ID Number</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.tutor.idNumber}</p>
-                </div>
-              )}
-
-              {profile.tutor.address && (
-                <div className="sm:col-span-2">
-                  <p className="text-sm text-slate-500">Address</p>
-                  <p className="text-base text-slate-800 font-medium">{profile.tutor.address}</p>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -506,8 +589,9 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Basic Information Section */}
+              {/* Personal Information Section */}
               <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Personal Information</h4>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Full Name
@@ -532,59 +616,90 @@ export default function ProfilePage() {
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.student.dob || formData.tutor.dob}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setFormData(prev => ({
+                        ...prev,
+                        student: { ...prev.student, dob: value },
+                        tutor: { ...prev.tutor, dob: value }
+                      }))
+                    }}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.student.phone || formData.tutor.phone}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setFormData(prev => ({
+                        ...prev,
+                        student: { ...prev.student, phone: value },
+                        tutor: { ...prev.tutor, phone: value }
+                      }))
+                    }}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    placeholder="0771234567"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    value={formData.student.address || formData.tutor.address}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setFormData(prev => ({
+                        ...prev,
+                        student: { ...prev.student, address: value },
+                        tutor: { ...prev.tutor, address: value }
+                      }))
+                    }}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
+                    placeholder="Enter your address"
+                  />
+                </div>
+
+                {profile?.hasTutorProfile && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      ID Number (NIC)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.tutor.idNumber}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        tutor: { ...prev.tutor, idNumber: e.target.value }
+                      }))}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                      placeholder="123456789V or 123456789012"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Student Profile Section */}
               {profile?.hasStudentProfile && (
                 <div className="border-t border-slate-200 pt-6">
+                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Student Profile</h4>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Date of Birth
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.student.dob}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          student: { ...prev.student, dob: e.target.value }
-                        }))}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.student.phone}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          student: { ...prev.student, phone: e.target.value }
-                        }))}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                        placeholder="0771234567"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Address
-                      </label>
-                      <textarea
-                        value={formData.student.address}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          student: { ...prev.student, address: e.target.value }
-                        }))}
-                        rows={3}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
-                        placeholder="Enter your address"
-                      />
-                    </div>
-
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         School Grade
@@ -655,69 +770,14 @@ export default function ProfilePage() {
               {/* Tutor Profile Section */}
               {profile?.hasTutorProfile && (
                 <div className="border-t border-slate-200 pt-6">
+                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Tutor Profile</h4>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Date of Birth
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.tutor.dob}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          tutor: { ...prev.tutor, dob: e.target.value }
-                        }))}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.tutor.phone}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          tutor: { ...prev.tutor, phone: e.target.value }
-                        }))}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                        placeholder="0771234567"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Address
-                      </label>
-                      <textarea
-                        value={formData.tutor.address}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          tutor: { ...prev.tutor, address: e.target.value }
-                        }))}
-                        rows={3}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
-                        placeholder="Enter your address"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        ID Number (NIC)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.tutor.idNumber}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          tutor: { ...prev.tutor, idNumber: e.target.value }
-                        }))}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                        placeholder="123456789V or 123456789012"
-                      />
-                    </div>
+                    {tutorApplicationData?.applicationStatus !== 'APPROVED' && (
+                      <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                        <Loader2 className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-amber-700">Qualifications, Subjects, and Experience are locked until your application is approved by an admin.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

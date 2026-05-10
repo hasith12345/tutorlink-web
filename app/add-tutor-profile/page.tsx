@@ -10,6 +10,7 @@ import {
 import { api, authStorage } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
 import { SubjectSelector } from "@/components/subject-selector"
+import { LoadingSpinner } from "@/components/loading-spinner"
 
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024
 const PDF_MAX_BYTES   = 10 * 1024 * 1024
@@ -227,11 +228,7 @@ export default function AddTutorProfilePage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
-      </div>
-    )
+    return <LoadingSpinner size="lg" fullPage />
   }
 
   if (success) {
@@ -411,7 +408,7 @@ export default function AddTutorProfilePage() {
             ) : (
               <button type="button" onClick={() => cvRef.current?.click()} disabled={uploadingCv}
                 className={`w-full py-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-60 ${cvError ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}>
-                {uploadingCv ? <><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600" /><span className="text-sm text-gray-500">Uploading…</span></> : cvError ? (
+                {uploadingCv ? <><LoadingSpinner size="md" /><span className="text-sm text-gray-500">Uploading…</span></> : cvError ? (
                   <><AlertCircle className="w-7 h-7 text-red-500" /><span className="text-xs text-red-500 text-center px-4">{cvError}</span></>
                 ) : (
                   <><FileText className="w-8 h-8 text-gray-400" /><span className="text-sm font-medium text-gray-600">Click to upload CV</span><span className="text-xs text-gray-400">PDF, DOC, DOCX, or images · max 5 MB</span></>
@@ -498,7 +495,7 @@ export default function AddTutorProfilePage() {
                   ) : (
                     <button type="button" onClick={() => frontRef.current?.click()} disabled={uploadingFront}
                       className={`w-full h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-60 ${frontError ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}>
-                      {uploadingFront ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600" /> : frontError ? (
+                      {uploadingFront ? <LoadingSpinner size="sm" /> : frontError ? (
                         <><AlertCircle className="w-5 h-5 text-red-500" /><span className="text-xs text-red-500 text-center px-2">{frontError}</span></>
                       ) : (
                         <><Upload className="w-5 h-5 text-gray-400" /><span className="text-xs text-gray-500">Click to upload</span></>
@@ -524,7 +521,7 @@ export default function AddTutorProfilePage() {
                   ) : (
                     <button type="button" onClick={() => backRef.current?.click()} disabled={uploadingBack}
                       className={`w-full h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-60 ${backError ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}>
-                      {uploadingBack ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600" /> : backError ? (
+                      {uploadingBack ? <LoadingSpinner size="sm" /> : backError ? (
                         <><AlertCircle className="w-5 h-5 text-red-500" /><span className="text-xs text-red-500 text-center px-2">{backError}</span></>
                       ) : (
                         <><Upload className="w-5 h-5 text-gray-400" /><span className="text-xs text-gray-500">Click to upload</span></>
@@ -553,7 +550,7 @@ export default function AddTutorProfilePage() {
                 ) : (
                   <button type="button" onClick={() => pdfRef.current?.click()} disabled={uploadingPdf}
                     className={`w-full py-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-60 ${pdfError ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}>
-                    {uploadingPdf ? <><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600" /><span className="text-sm text-gray-500">Uploading…</span></> : pdfError ? (
+                    {uploadingPdf ? <><LoadingSpinner size="md" /><span className="text-sm text-gray-500">Uploading…</span></> : pdfError ? (
                       <><AlertCircle className="w-7 h-7 text-red-500" /><span className="text-xs text-red-500 text-center px-4">{pdfError}</span></>
                     ) : (
                       <><FileText className="w-8 h-8 text-gray-400" /><span className="text-sm font-medium text-gray-600">Click to upload PDF</span><span className="text-xs text-gray-400">Both NIC sides · max 10 MB</span></>

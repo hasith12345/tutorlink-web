@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
-import { ArrowLeft, Bell, Lock } from "lucide-react"
+import { ArrowLeft, Bell, Lock, HeadphonesIcon } from "lucide-react"
 import { api, authStorage } from "@/lib/api"
 
 export default function SettingsPage() {
@@ -84,6 +84,26 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Support */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+          <div className="flex items-center space-x-3 mb-6">
+            <HeadphonesIcon className="w-6 h-6 text-indigo-600" />
+            <h2 className="text-xl font-bold text-slate-800">Support</h2>
+          </div>
+          <button
+            onClick={() => router.push('/contact-us')}
+            className="w-full text-left p-4 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all flex items-center gap-4"
+          >
+            <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <p className="font-medium text-slate-800">Contact Support</p>
+              <p className="text-sm text-slate-500 mt-0.5">Get help from our admin team</p>
+            </div>
+          </button>
         </div>
 
         {/* Security Settings */}

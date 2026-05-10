@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { authStorage } from '@/lib/api'
+import { LoadingSpinner } from '@/components/loading-spinner'
 
 function OAuthSuccessContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -81,7 +82,7 @@ function OAuthSuccessContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="mb-4"><LoadingSpinner size="lg" /></div>
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Completing Sign In...</h1>
           <p className="text-slate-600">Please wait while we set up your account</p>
         </div>
@@ -131,7 +132,7 @@ export default function OAuthSuccessPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="mb-4"><LoadingSpinner size="lg" /></div>
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Loading...</h1>
         </div>
       </div>
