@@ -2,20 +2,21 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import {
-  Calendar, Phone, MapPin, CreditCard,
-  Upload, FileText, Image as ImageIcon, X, CheckCircle,
-  AlertCircle, Info, ArrowLeft, GraduationCap
+  FileText, BookOpen, Award, Clock, CreditCard,
+  Upload, X, CheckCircle, AlertCircle, Info, ArrowLeft, GraduationCap,
+  Image as ImageIcon
 } from "lucide-react"
 import { api, authStorage } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
+import { SubjectSelector } from "@/components/subject-selector"
 
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024
 const PDF_MAX_BYTES   = 10 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+const CV_ALLOWED = [...ALLOWED_IMAGE_TYPES, "application/pdf"]
 
-type UploadMode = "image" | "pdf" | null
+type IdUploadMode = "image" | "pdf" | null
 
 interface UploadedFile {
   url: string
@@ -23,10 +24,10 @@ interface UploadedFile {
   type: string
 }
 
-async function uploadIdFile(file: File): Promise<string> {
+async function uploadFile(file: File, endpoint: string): Promise<string> {
   const formData = new FormData()
   formData.append("file", file)
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/upload/id-copy`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}${endpoint}`, {
     method: "POST",
     body: formData,
   })
@@ -44,16 +45,24 @@ export default function AddTutorProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const [formData, setFormData] = useState({
-    dob: "",
-    phone: "",
-    address: "",
+    qualifications: [""],
+    subjects: [""],
+    experience: [""],
     idNumber: ""
+    // DOB, Phone, Address are automatically pulled from student profile
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  const [uploadMode, setUploadMode] = useState<UploadMode>(null)
+  // CV upload
+  const [cvFile, setCvFile] = useState<UploadedFile | null>(null)
+  const [uploadingCv, setUploadingCv] = useState(false)
+  const [cvError, setCvError] = useState("")
+  const cvRef = useRef<HTMLInputElement>(null)
+
+  // ID upload
+  const [idUploadMode, setIdUploadMode] = useState<IdUploadMode>(null)
   const [frontFile, setFrontFile] = useState<UploadedFile | null>(null)
   const [backFile,  setBackFile]  = useState<UploadedFile | null>(null)
   const [pdfFile,   setPdfFile]   = useState<UploadedFile | null>(null)
@@ -79,7 +88,6 @@ export default function AddTutorProfilePage() {
       return
     }
     if (userData.hasTutorProfile) {
-      // Already has a tutor profile
       router.push('/select-role')
       return
     }
@@ -89,49 +97,68 @@ export default function AddTutorProfilePage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    if (!formData.dob) newErrors.dob = "Date of birth is required"
-    if (!formData.phone) {
-      newErrors.phone = "Phone number is required"
-    } else if (!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid 10-digit phone number"
+
+    // DOB, Phone, Address validation removed - these come from student profile
+
+    if (!formData.qualifications.some(q => q.trim())) {
+      newErrors.qualifications = "At least one qualification is required"
     }
-    if (!formData.address.trim()) newErrors.address = "Address is required"
+    if (!formData.subjects.some(s => s.trim())) {
+      newErrors.subjects = "At least one subject taught is required"
+    }
     if (!formData.idNumber.trim()) {
       newErrors.idNumber = "ID number is required"
     } else if (!/^\d{9}[Vv]$|^\d{12}$/.test(formData.idNumber)) {
       newErrors.idNumber = "Please enter a valid NIC number (9 digits + V or 12 digits)"
     }
-    if (!uploadMode) {
+
+    if (!idUploadMode) {
       newErrors.idCopy = "Please upload your ID copy (both sides as images or as a PDF)"
-    } else if (uploadMode === "image") {
+    } else if (idUploadMode === "image") {
       if (!frontFile) newErrors.idCopy = "Please upload the front side of your NIC"
       else if (!backFile) newErrors.idCopy = "Please upload the back side of your NIC"
-    } else if (uploadMode === "pdf") {
+    } else if (idUploadMode === "pdf") {
       if (!pdfFile) newErrors.idCopy = "Please upload your NIC as a PDF"
     }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const validateFile = (file: File, isPdf: boolean): string | null => {
-    if (isPdf) {
-      if (file.type !== "application/pdf") return "Only PDF files are accepted here"
+  const validateFile = (file: File, type: 'cv' | 'image' | 'pdf'): string | null => {
+    if (type === 'cv') {
+      if (!CV_ALLOWED.includes(file.type)) return "Only JPEG, PNG, WebP, PDF, DOC, DOCX are accepted"
+      if (file.size > 5 * 1024 * 1024) return `File too large (${(file.size / 1024 / 1024).toFixed(2)} MB). Max 5 MB.`
+    } else if (type === 'pdf') {
+      if (file.type !== "application/pdf") return "Only PDF files are accepted"
       if (file.size > PDF_MAX_BYTES) return `File too large (${(file.size / 1024 / 1024).toFixed(2)} MB). Max 10 MB.`
-    } else {
+    } else if (type === 'image') {
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return "Only JPEG, PNG or WebP images are accepted"
       if (file.size > IMAGE_MAX_BYTES) return `Image too large (${(file.size / 1024 / 1024).toFixed(2)} MB). Max 5 MB.`
     }
     return null
   }
 
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; e.target.value = ""
+    if (!file) return
+    const err = validateFile(file, 'cv')
+    if (err) { setCvError(err); return }
+    setCvError("")
+    setUploadingCv(true)
+    try { setCvFile({ url: await uploadFile(file, '/upload/cv'), name: file.name, type: "document" }) }
+    catch (e: unknown) { setCvError(e instanceof Error ? e.message : "Upload failed") }
+    finally { setUploadingCv(false) }
+  }
+
   const handleFrontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; e.target.value = ""
     if (!file) return
-    const err = validateFile(file, false)
+    const err = validateFile(file, 'image')
     if (err) { setFrontError(err); return }
     setFrontError(""); setErrors(prev => ({ ...prev, idCopy: "" }))
     setUploadingFront(true)
-    try { setFrontFile({ url: await uploadIdFile(file), name: file.name, type: "image" }) }
+    try { setFrontFile({ url: await uploadFile(file, '/upload/id-copy'), name: file.name, type: "image" }) }
     catch (e: unknown) { setFrontError(e instanceof Error ? e.message : "Upload failed") }
     finally { setUploadingFront(false) }
   }
@@ -139,11 +166,11 @@ export default function AddTutorProfilePage() {
   const handleBackUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; e.target.value = ""
     if (!file) return
-    const err = validateFile(file, false)
+    const err = validateFile(file, 'image')
     if (err) { setBackError(err); return }
     setBackError(""); setErrors(prev => ({ ...prev, idCopy: "" }))
     setUploadingBack(true)
-    try { setBackFile({ url: await uploadIdFile(file), name: file.name, type: "image" }) }
+    try { setBackFile({ url: await uploadFile(file, '/upload/id-copy'), name: file.name, type: "image" }) }
     catch (e: unknown) { setBackError(e instanceof Error ? e.message : "Upload failed") }
     finally { setUploadingBack(false) }
   }
@@ -151,17 +178,17 @@ export default function AddTutorProfilePage() {
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; e.target.value = ""
     if (!file) return
-    const err = validateFile(file, true)
+    const err = validateFile(file, 'pdf')
     if (err) { setPdfError(err); return }
     setPdfError(""); setErrors(prev => ({ ...prev, idCopy: "" }))
     setUploadingPdf(true)
-    try { setPdfFile({ url: await uploadIdFile(file), name: file.name, type: "pdf" }) }
+    try { setPdfFile({ url: await uploadFile(file, '/upload/id-copy'), name: file.name, type: "pdf" }) }
     catch (e: unknown) { setPdfError(e instanceof Error ? e.message : "Upload failed") }
     finally { setUploadingPdf(false) }
   }
 
-  const switchMode = (mode: UploadMode) => {
-    setUploadMode(mode)
+  const switchIdMode = (mode: IdUploadMode) => {
+    setIdUploadMode(mode)
     setFrontFile(null); setBackFile(null); setPdfFile(null)
     setFrontError(""); setBackError(""); setPdfError("")
     setErrors(prev => ({ ...prev, idCopy: "" }))
@@ -174,15 +201,16 @@ export default function AddTutorProfilePage() {
     try {
       const result = await api.addRole({
         role: "tutor",
-        dob: formData.dob,
-        phone: formData.phone,
-        address: formData.address,
         idNumber: formData.idNumber,
         idCopyFront: frontFile?.url,
         idCopyBack:  backFile?.url,
         idCopyPdf:   pdfFile?.url,
+        qualifications: formData.qualifications.filter(q => q.trim()).join(" | "),
+        subjects: formData.subjects.filter(s => s.trim()),
+        experience: formData.experience.filter(e => e.trim()).join(" | "),
+        cvUrl: cvFile?.url,
       })
-      // Update stored user flags
+
       const currentUser = authStorage.getUser()
       if (currentUser) {
         authStorage.setUser({ ...currentUser, hasTutorProfile: true })
@@ -190,7 +218,7 @@ export default function AddTutorProfilePage() {
       authStorage.setActiveRole('tutor')
       window.dispatchEvent(new Event('userDataUpdated'))
       setSuccess(true)
-      setTimeout(() => router.push('/select-role'), 1500)
+      setTimeout(() => router.push('/tutor-application-status'), 1500)
     } catch (error) {
       setErrors({ submit: error instanceof Error ? error.message : "An unexpected error occurred" })
     } finally {
@@ -214,7 +242,7 @@ export default function AddTutorProfilePage() {
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Tutor profile created!</h2>
-          <p className="text-gray-500">Redirecting you to choose your active role…</p>
+          <p className="text-gray-500">Your profile is pending admin approval. Redirecting…</p>
         </div>
       </div>
     )
@@ -241,65 +269,163 @@ export default function AddTutorProfilePage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Create Your Tutor Profile</h1>
-              <p className="text-gray-500 text-sm">Hi {user?.fullName} — just a few more details to get started</p>
+              <p className="text-gray-500 text-sm">Hi {user?.fullName} — tell us about your teaching expertise</p>
             </div>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
 
-          {/* Date of Birth */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-2" />
-              Date of Birth
-            </label>
-            <input
-              type="date"
-              value={formData.dob}
-              onChange={(e) => { setFormData({ ...formData, dob: e.target.value }); setErrors(prev => ({ ...prev, dob: "" })) }}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${errors.dob ? "border-red-500" : "border-gray-300"}`}
-            />
-            {errors.dob && <p className="mt-1 text-sm text-red-600">{errors.dob}</p>}
+          {/* Info Box */}
+          <div className="flex gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Your basic information (DOB, Phone, Address) from your student profile will be used for your tutor profile.</p>
+            </div>
           </div>
 
-          {/* Phone Number */}
+          {/* Qualifications */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone className="w-4 h-4 inline mr-2" />
-              Phone Number
+              <Award className="w-4 h-4 inline mr-2" />
+              Qualifications <span className="text-red-500">*</span>
             </label>
-            <input
-              type="tel"
-              placeholder="0771234567"
-              value={formData.phone}
-              onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); setErrors(prev => ({ ...prev, phone: "" })) }}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${errors.phone ? "border-red-500" : "border-gray-300"}`}
-            />
-            {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+            <div className="space-y-2">
+              {formData.qualifications.map((qual, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g., BSc in Mathematics, MSc in Education, PGDE..."
+                    value={qual}
+                    onChange={(e) => {
+                      const newQuals = [...formData.qualifications]
+                      newQuals[idx] = e.target.value
+                      setFormData({ ...formData, qualifications: newQuals })
+                      setErrors(prev => ({ ...prev, qualifications: "" }))
+                    }}
+                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${errors.qualifications ? "border-red-500" : "border-gray-300"}`}
+                  />
+                  {formData.qualifications.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newQuals = formData.qualifications.filter((_, i) => i !== idx)
+                        setFormData({ ...formData, qualifications: newQuals })
+                      }}
+                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, qualifications: [...formData.qualifications, ""] })}
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+              >
+                + Add another qualification
+              </button>
+            </div>
+            {errors.qualifications && <p className="mt-1 text-sm text-red-600">{errors.qualifications}</p>}
           </div>
 
-          {/* Address */}
+          {/* Subjects Taught */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <MapPin className="w-4 h-4 inline mr-2" />
-              Address
+              <BookOpen className="w-4 h-4 inline mr-2" />
+              Subjects Taught <span className="text-red-500">*</span>
             </label>
-            <textarea
-              placeholder="Enter your address"
-              value={formData.address}
-              onChange={(e) => { setFormData({ ...formData, address: e.target.value }); setErrors(prev => ({ ...prev, address: "" })) }}
-              rows={3}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none ${errors.address ? "border-red-500" : "border-gray-300"}`}
+            <SubjectSelector
+              values={formData.subjects}
+              onChange={(subjects) => {
+                setFormData({ ...formData, subjects })
+                setErrors(prev => ({ ...prev, subjects: "" }))
+              }}
+              onError={(error) => setErrors(prev => ({ ...prev, subjects: error }))}
             />
-            {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+            {errors.subjects && <p className="mt-1 text-sm text-red-600">{errors.subjects}</p>}
+          </div>
+
+          {/* Teaching Experience */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Clock className="w-4 h-4 inline mr-2" />
+              Teaching Experience <span className="text-gray-400">(optional)</span>
+            </label>
+            <div className="space-y-2">
+              {formData.experience.map((exp, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <textarea
+                    placeholder="e.g., 5 years of teaching A/L Mathematics, Private tuition since 2020..."
+                    value={exp}
+                    onChange={(e) => {
+                      const newExperience = [...formData.experience]
+                      newExperience[idx] = e.target.value
+                      setFormData({ ...formData, experience: newExperience })
+                    }}
+                    rows={2}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
+                  />
+                  {formData.experience.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newExperience = formData.experience.filter((_, i) => i !== idx)
+                        setFormData({ ...formData, experience: newExperience })
+                      }}
+                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors h-fit"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, experience: [...formData.experience, ""] })}
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+              >
+                + Add another experience
+              </button>
+            </div>
+          </div>
+
+          {/* CV Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FileText className="w-4 h-4 inline mr-2" />
+              Upload CV <span className="text-gray-400">(optional)</span>
+            </label>
+            {cvFile ? (
+              <div className="flex items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
+                <FileText className="w-8 h-8 text-green-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-700 truncate">{cvFile.name}</p>
+                  <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5"><CheckCircle className="w-3 h-3" /> Uploaded</p>
+                </div>
+                <button type="button" onClick={() => setCvFile(null)} className="p-1 rounded-full hover:bg-red-100">
+                  <X className="w-4 h-4 text-red-400" />
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => cvRef.current?.click()} disabled={uploadingCv}
+                className={`w-full py-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-60 ${cvError ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}>
+                {uploadingCv ? <><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600" /><span className="text-sm text-gray-500">Uploading…</span></> : cvError ? (
+                  <><AlertCircle className="w-7 h-7 text-red-500" /><span className="text-xs text-red-500 text-center px-4">{cvError}</span></>
+                ) : (
+                  <><FileText className="w-8 h-8 text-gray-400" /><span className="text-sm font-medium text-gray-600">Click to upload CV</span><span className="text-xs text-gray-400">PDF, DOC, DOCX, or images · max 5 MB</span></>
+                )}
+              </button>
+            )}
+            <input ref={cvRef} type="file" accept="application/pdf,.doc,.docx,image/jpeg,image/jpg,image/png,image/webp" className="hidden" onChange={handleCvUpload} />
           </div>
 
           {/* ID Number */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <CreditCard className="w-4 h-4 inline mr-2" />
-              NIC Number
+              NIC Number <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -329,9 +455,9 @@ export default function AddTutorProfilePage() {
             <div className="flex gap-3 mb-4">
               <button
                 type="button"
-                onClick={() => switchMode("image")}
+                onClick={() => switchIdMode("image")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
-                  uploadMode === "image"
+                  idUploadMode === "image"
                     ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                     : "border-gray-200 text-gray-600 hover:border-indigo-300"
                 }`}
@@ -341,9 +467,9 @@ export default function AddTutorProfilePage() {
               </button>
               <button
                 type="button"
-                onClick={() => switchMode("pdf")}
+                onClick={() => switchIdMode("pdf")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
-                  uploadMode === "pdf"
+                  idUploadMode === "pdf"
                     ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                     : "border-gray-200 text-gray-600 hover:border-indigo-300"
                 }`}
@@ -354,7 +480,7 @@ export default function AddTutorProfilePage() {
             </div>
 
             {/* Image mode */}
-            {uploadMode === "image" && (
+            {idUploadMode === "image" && (
               <div className="grid grid-cols-2 gap-3">
                 {/* Front */}
                 <div>
@@ -411,7 +537,7 @@ export default function AddTutorProfilePage() {
             )}
 
             {/* PDF mode */}
-            {uploadMode === "pdf" && (
+            {idUploadMode === "pdf" && (
               <div>
                 {pdfFile ? (
                   <div className="flex items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">

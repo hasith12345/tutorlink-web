@@ -19,6 +19,10 @@ export interface SignupData {
   idCopyFront?: string
   idCopyBack?: string
   idCopyPdf?: string
+  qualifications?: string
+  subjects?: string[]
+  experience?: string
+  cvUrl?: string
 }
 
 // ✅ OAuth Signup Data (no password needed)
@@ -39,6 +43,10 @@ export interface OAuthSignupData {
   idCopyFront?: string
   idCopyBack?: string
   idCopyPdf?: string
+  qualifications?: string
+  subjects?: string[]
+  experience?: string
+  cvUrl?: string
 }
 
 export interface LoginData {
@@ -78,6 +86,10 @@ export interface AddRoleData {
   idCopyFront?: string
   idCopyBack?: string
   idCopyPdf?: string
+  qualifications?: string
+  subjects?: string[]
+  experience?: string
+  cvUrl?: string
 }
 
 // ✅ User Profile Response
@@ -224,6 +236,17 @@ class ApiClient {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(data),
+    })
+  }
+
+  // ✅ Get current user with role flags (authenticated)
+  async getCurrentUser(): Promise<{ user: any }> {
+    const token = authStorage.getToken()
+    return this.request('/auth/me', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
     })
   }
 

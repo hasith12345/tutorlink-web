@@ -284,17 +284,6 @@ export function Navbar() {
                   {/* Dropdown Menu */}
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                      {activeRole === 'tutor' && (
-                        <button
-                          onClick={() => {
-                            setIsProfileOpen(false)
-                            router.push('/dashboard')
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          Dashboard
-                        </button>
-                      )}
                       {user?.hasStudentProfile && user?.hasTutorProfile && (
                         <button
                           onClick={() => {
@@ -303,7 +292,7 @@ export function Navbar() {
                           }}
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
                         >
-                          <ArrowLeftRight className="w-4 h-4" />
+                          <ArrowLeftRight className="w-4 h-4 text-gray-400" />
                           Switch Account
                         </button>
                       )}
@@ -314,7 +303,7 @@ export function Navbar() {
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
                       >
-                        <User className="w-4 h-4" />
+                        <User className="w-4 h-4 text-gray-400" />
                         View Profile
                       </button>
                       <button
@@ -324,16 +313,15 @@ export function Navbar() {
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
                       >
-                        <Settings className="w-4 h-4" />
+                        <Settings className="w-4 h-4 text-gray-400" />
                         Settings
                       </button>
-                      <div className="border-t border-gray-100 my-1" />
                       <button
                         onClick={() => {
                           setIsProfileOpen(false)
                           handleLogout()
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-200 mt-1.5 pt-1.5"
                       >
                         <LogOut className="w-4 h-4" />
                         Logout
