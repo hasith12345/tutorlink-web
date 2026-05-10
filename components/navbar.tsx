@@ -283,49 +283,55 @@ export function Navbar() {
 
                   {/* Dropdown Menu */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                      {user?.hasStudentProfile && user?.hasTutorProfile && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+                        <p className="font-semibold text-gray-900 text-sm truncate">{user?.fullName}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      <div className="py-1.5">
+                        {user?.hasStudentProfile && user?.hasTutorProfile && (
+                          <button
+                            onClick={() => {
+                              setIsProfileOpen(false)
+                              router.push('/select-role')
+                            }}
+                            className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <ArrowLeftRight className="w-4 h-4 text-gray-400" />
+                            Switch Account
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setIsProfileOpen(false)
-                            router.push('/select-role')
+                            router.push('/dashboard/profile')
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <ArrowLeftRight className="w-4 h-4 text-gray-400" />
-                          Switch Account
+                          <User className="w-4 h-4 text-gray-400" />
+                          View Profile
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          router.push('/dashboard/profile')
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      >
-                        <User className="w-4 h-4 text-gray-400" />
-                        View Profile
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          router.push('/dashboard/settings')
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      >
-                        <Settings className="w-4 h-4 text-gray-400" />
-                        Settings
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          handleLogout()
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-200 mt-1.5 pt-1.5"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Logout
-                      </button>
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            router.push('/dashboard/settings')
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Settings className="w-4 h-4 text-gray-400" />
+                          Settings
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            handleLogout()
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1.5 pt-1.5"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Log Out
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
