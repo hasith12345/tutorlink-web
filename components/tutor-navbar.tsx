@@ -23,7 +23,6 @@ import { authStorage } from "@/lib/api"
 const navItems = [
   { label: "Dashboard", href: "/tutor/dashboard" },
   { label: "My Classes", href: "/tutor/classes" },
-  { label: "Schedule", href: "/tutor/schedule" },
   { label: "Students", href: "/tutor/students" },
   { label: "Earnings", href: "/tutor/earnings" },
   { label: "Messages", href: "/tutor/messages" },
@@ -108,7 +107,7 @@ export function TutorNavbar() {
       } border-b border-gray-100`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/tutor/dashboard" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-8 h-8 flex items-center justify-center">

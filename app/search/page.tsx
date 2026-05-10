@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Search, MapPin, Locate, Monitor, Users, Shuffle, Star, BookOpen, Clock, Award, Loader2, ArrowLeft, User } from "lucide-react"
+import { Search, MapPin, Locate, Monitor, Users, Shuffle, Star, BookOpen, Clock, Award, Loader2, ArrowLeft, User, CalendarDays, ChevronRight } from "lucide-react"
 import { api } from "@/lib/api"
 import { TutorGigsFeed } from "@/components/tutor-gigs-feed"
 
@@ -26,6 +26,8 @@ interface TutorResult {
   totalStudents: number
   isVerified: boolean
   bio: string
+  classes: any[]
+  lowestFee: number | null
 }
 
 interface Suggestion {
@@ -196,6 +198,8 @@ export default function SearchPage() {
           totalStudents: tutor.totalStudents,
           isVerified: tutor.isVerified,
           bio: tutor.bio,
+          classes: tutor.classes || [],
+          lowestFee: tutor.lowestFee ?? null,
         })))
       }
     } catch (error) {
@@ -417,72 +421,68 @@ export default function SearchPage() {
             )}
           </div>
         )}
-        <TutorGigsFeed />
+        {!hasSearched && <TutorGigsFeed />}
       </main>
     </div>
   )
 }
 
 function TutorCard({ tutor }: { tutor: TutorResult }) {
-  const ModeIcon = modeIcons[tutor.learningMode]
-  const formattedPrice = tutor.hourlyRate ? `$${(tutor.hourlyRate / 100).toFixed(2)}/hr` : 'Contact for pricing'
+  const router = useRouter()
+  const firstClass = tutor.classes?.[0]
+  const mode = (firstClass?.mode || tutor.learningMode || "online") as keyof typeof modeIcons
+  const ModeIcon = modeIcons[mode] || Monitor
+  const initials = tutor.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "T"
+  const primarySubject = tutor.subjects?.[0] || tutor.subject || "General"
+  const schedule = firstClass?.schedule || []
 
   return (
-    <Card className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1">
+    <Card
+      onClick={() => router.push(`/tutor/${tutor.id}`)}
+      className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1"
+    >
       <CardContent className="p-0">
-        {/* Profile Header with Gradient Background */}
         <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50/50 to-blue-50 p-6 pb-8">
-          {/* Verified Badge */}
           {tutor.isVerified && (
             <div className="absolute top-3 right-3">
               <Badge className="bg-green-500 text-white border-0 shadow-sm text-xs">
-                <Award className="w-3 h-3 mr-1" />
-                Verified
+                <Award className="w-3 h-3 mr-1" />Verified
               </Badge>
             </div>
           )}
-
-          {/* Avatar */}
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 rounded-full bg-white shadow-lg ring-4 ring-white overflow-hidden">
-              <img 
-                src={tutor.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(tutor.name)}`}
-                alt={tutor.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="w-20 h-20 rounded-full bg-white shadow-lg ring-4 ring-white overflow-hidden flex items-center justify-center">
+              {tutor.avatar ? (
+                <img src={tutor.avatar} alt={tutor.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold">
+                  {initials}
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Name and Subject */}
           <div className="text-center">
             <h3 className="font-bold text-gray-900 text-lg mb-1">{tutor.name}</h3>
             <p className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1">
-              <BookOpen className="w-4 h-4" />
-              {tutor.subject}
+              <BookOpen className="w-4 h-4" />{primarySubject}
             </p>
           </div>
         </div>
 
-        {/* Card Body */}
         <div className="p-5 space-y-3">
-          {/* Bio */}
-          {tutor.bio && (
-            <p className="text-xs text-gray-600 line-clamp-2">{tutor.bio}</p>
-          )}
-
-          {/* Stats Row */}
           <div className="flex items-center justify-between text-xs text-gray-600">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <span>{tutor.experience}</span>
-            </div>
+            {tutor.experience && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <span>{tutor.experience}</span>
+              </div>
+            )}
             <div className="flex items-center gap-1">
               <Users className="w-3.5 h-3.5 text-gray-400" />
-              <span>{tutor.totalStudents} students</span>
+              <span>{tutor.totalStudents || 0} students</span>
             </div>
           </div>
 
-          {/* Location */}
           {tutor.location && (
             <div className="flex items-center gap-2 text-gray-600 text-sm">
               <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -490,30 +490,44 @@ function TutorCard({ tutor }: { tutor: TutorResult }) {
             </div>
           )}
 
-          {/* Mode Badge */}
+          {tutor.classes?.length > 0 && (
+            <div className="flex items-center gap-2 text-gray-600 text-sm">
+              <CalendarDays className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span>
+                {tutor.classes.length} class{tutor.classes.length > 1 ? "es" : ""}
+                {schedule.length > 0 && <span className="text-gray-400 ml-1">· {schedule.join(", ")}</span>}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={`${modeColors[tutor.learningMode]} rounded-lg px-3 py-1 text-xs`}>
+            <Badge variant="secondary" className={`${modeColors[mode] || modeColors.online} rounded-lg px-3 py-1 text-xs`}>
               <ModeIcon className="w-3.5 h-3.5 mr-1.5" />
-              {tutor.learningMode.charAt(0).toUpperCase() + tutor.learningMode.slice(1)}
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
             </Badge>
           </div>
 
-          {/* Rating and Price */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="font-bold text-gray-900">{tutor.rating.toFixed(1)}</span>
-              <span className="text-gray-500 text-xs">({tutor.totalReviews})</span>
+              <span className="font-bold text-gray-900">{tutor.rating?.toFixed(1) || "New"}</span>
+              {tutor.totalReviews > 0 && <span className="text-gray-500 text-xs">({tutor.totalReviews})</span>}
             </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500">Starting at</div>
-              <div className="text-base font-bold text-indigo-600">{formattedPrice}</div>
-            </div>
+            {tutor.lowestFee != null && (
+              <div className="text-right">
+                <div className="text-xs text-gray-500">From</div>
+                <div className="text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Rs.{tutor.lowestFee.toLocaleString()}/mo
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Action Button */}
-          <Button className="w-full mt-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all text-sm">
-            View Profile
+          <Button
+            onClick={(e) => { e.stopPropagation(); router.push(`/tutor/${tutor.id}`) }}
+            className="w-full mt-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all text-sm"
+          >
+            View Profile <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
       </CardContent>

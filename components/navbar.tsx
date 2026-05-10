@@ -173,7 +173,7 @@ export function Navbar() {
                 )}
 
                 {/* Become a Tutor Button */}
-                {activeRole !== 'tutor' && (
+                {activeRole !== 'tutor' && !user?.hasTutorProfile && (
                   <Button
                     onClick={() => router.push('/become-tutor')}
                     variant="ghost"
@@ -437,7 +437,7 @@ export function Navbar() {
           </Button>
 
           {/* Become a Tutor Button */}
-          {(!isLoggedIn || activeRole !== 'tutor') && (
+          {(!isLoggedIn || (activeRole !== 'tutor' && !user?.hasTutorProfile)) && (
             <Button
               onClick={() => {
                 router.push('/become-tutor')

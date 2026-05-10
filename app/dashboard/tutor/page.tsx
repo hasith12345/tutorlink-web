@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { authStorage } from "@/lib/api"
 import { Users, BookOpen, DollarSign, Calendar, Star, TrendingUp } from "lucide-react"
+import { LoadingSpinner } from "@/components/loading-spinner"
 
 /**
  * Tutor Dashboard
@@ -46,11 +47,7 @@ export default function TutorDashboard() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
-    )
+    return <LoadingSpinner size="lg" fullPage />
   }
 
   return (

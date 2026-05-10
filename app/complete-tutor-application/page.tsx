@@ -9,6 +9,7 @@ import {
 import { api, authStorage } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
 import { SubjectSelector } from "@/components/subject-selector"
+import { LoadingSpinner } from "@/components/loading-spinner"
 
 const CV_MAX_BYTES = 5 * 1024 * 1024
 const CV_ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"]
@@ -109,11 +110,7 @@ export default function CompleteTutorApplicationPage() {
     }
   }
 
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
-    </div>
-  )
+  if (isLoading) return <LoadingSpinner size="lg" fullPage />
 
   if (success) return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -251,7 +248,7 @@ export default function CompleteTutorApplicationPage() {
               <button type="button" onClick={() => cvRef.current?.click()} disabled={uploadingCv}
                 className={`w-full py-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-60 ${cvError ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}>
                 {uploadingCv
-                  ? <><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600" /><span className="text-sm text-gray-500">Uploading…</span></>
+                  ? <><LoadingSpinner size="md" /><span className="text-sm text-gray-500">Uploading…</span></>
                   : cvError
                     ? <><AlertCircle className="w-7 h-7 text-red-500" /><span className="text-xs text-red-500 text-center px-4">{cvError}</span></>
                     : <><Upload className="w-8 h-8 text-gray-400" /><span className="text-sm font-medium text-gray-600">Click to upload CV</span><span className="text-xs text-gray-400">PDF or images · max 5 MB</span></>

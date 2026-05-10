@@ -145,6 +145,9 @@ export interface UpdateProfileData {
     idCopyFront?: string
     idCopyBack?: string
     idCopyPdf?: string
+    qualifications?: string
+    subjects?: string[]
+    experience?: string
   }
 }
 
@@ -459,7 +462,7 @@ class ApiClient {
     venue?: string
     mode: string
     location?: string
-    date: string
+    schedule: string[]
     time: string
     duration: string
     fees: number
@@ -506,29 +509,60 @@ class ApiClient {
     })
   }
 
+  async deleteClass(classId: string): Promise<{ message: string }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
   // ✅ Admin endpoints
   async getAdminApplications(status?: string): Promise<{ applications: any[] }> {
-    const token = authStorage.getToken()
     const query = status ? `?status=${status}` : ''
     return this.request(`/tutor/admin/applications${query}`, {
       method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })
   }
 
   async approveApplication(tutorId: string): Promise<{ message: string; tutor: any }> {
-    const token = authStorage.getToken()
     return this.request(`/tutor/admin/applications/${tutorId}/approve`, {
       method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })
   }
 
   async rejectApplication(tutorId: string): Promise<{ message: string; tutor: any }> {
-    const token = authStorage.getToken()
     return this.request(`/tutor/admin/applications/${tutorId}/reject`, {
       method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  private getAdminToken(): string | null {
+    if (typeof window !== 'undefined') return localStorage.getItem('adminToken')
+    return null
+  }
+
+  async getAllUsers(): Promise<{ users: any[]; total: number }> {
+    return this.request('/auth/admin/users', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async banUser(userId: string): Promise<{ message: string; user: any }> {
+    return this.request(`/auth/admin/users/${userId}/ban`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async unbanUser(userId: string): Promise<{ message: string; user: any }> {
+    return this.request(`/auth/admin/users/${userId}/unban`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })
   }
 }
