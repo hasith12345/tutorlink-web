@@ -15,7 +15,7 @@ export default function AccountsPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = authStorage.getToken()
+        const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null
         if (token) {
           const res = await api.getAllUsers()
           setUsers(res.users)
