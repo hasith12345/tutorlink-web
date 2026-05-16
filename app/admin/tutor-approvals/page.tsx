@@ -59,7 +59,8 @@ export default function TutorApprovalsPage() {
       case "PENDING": return <Badge className="bg-amber-100 text-amber-700 border-amber-200"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
       case "APPROVED": return <Badge className="bg-green-100 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>
       case "REJECTED": return <Badge className="bg-red-100 text-red-700 border-red-200"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
-      default: return <Badge variant="outline">Unknown</Badge>
+      case "NOT_SUBMITTED": return <Badge className="bg-gray-100 text-gray-600 border-gray-200"><Clock className="w-3 h-3 mr-1" />Not Submitted</Badge>
+      default: return <Badge variant="outline">{status || "Unknown"}</Badge>
     }
   }
 
@@ -436,7 +437,7 @@ export default function TutorApprovalsPage() {
                 </div>
               ) : (
                 <div className="text-center text-sm text-gray-600 bg-gray-50 -m-6 p-6">
-                  Application <span className="font-semibold">{selectedApp.applicationStatus.toLowerCase()}</span> on{" "}
+                  Application <span className="font-semibold">{selectedApp.applicationStatus === "NOT_SUBMITTED" ? "not submitted" : selectedApp.applicationStatus.toLowerCase()}</span> on{" "}
                   {new Date(selectedApp.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                 </div>
               )}
