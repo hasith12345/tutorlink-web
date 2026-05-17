@@ -403,9 +403,9 @@ export default function SearchPage() {
                 ))}
               </div>
             ) : searchResults.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch" style={{gridAutoRows: '1fr'}}>
                 {searchResults.map((tutor, index) => (
-                  <div key={tutor.id} data-aos="fade-up" data-aos-delay={Math.min(index * 80, 400)}>
+                  <div key={tutor.id} data-aos="fade-up" data-aos-delay={Math.min(index * 80, 400)} className="flex">
                     <TutorCard tutor={tutor} />
                   </div>
                 ))}
@@ -439,10 +439,10 @@ function TutorCard({ tutor }: { tutor: TutorResult }) {
   return (
     <Card
       onClick={() => router.push(`/tutor/${tutor.id}`)}
-      className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1"
+      className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 w-full flex flex-col"
     >
-      <CardContent className="p-0">
-        <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50/50 to-blue-50 p-6 pb-8">
+      <CardContent className="p-0 flex flex-col h-full">
+        <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50/50 to-blue-50 p-6 pb-8 flex-shrink-0">
           {tutor.isVerified && (
             <div className="absolute top-3 right-3">
               <Badge className="bg-green-500 text-white border-0 shadow-sm text-xs">
@@ -462,52 +462,52 @@ function TutorCard({ tutor }: { tutor: TutorResult }) {
             </div>
           </div>
           <div className="text-center">
-            <h3 className="font-bold text-gray-900 text-lg mb-1">{tutor.name}</h3>
-            <p className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1">
-              <BookOpen className="w-4 h-4" />{primarySubject}
+            <h3 className="font-bold text-gray-900 text-lg mb-1 line-clamp-1">{tutor.name}</h3>
+            <p className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1 line-clamp-1">
+              <BookOpen className="w-4 h-4 flex-shrink-0" />{primarySubject}
             </p>
           </div>
         </div>
 
-        <div className="p-5 space-y-3">
-          <div className="flex items-center justify-between text-xs text-gray-600">
+        <div className="p-5 space-y-3 flex-1 flex flex-col overflow-hidden min-h-[180px]">
+          <div className="flex items-center justify-between text-xs text-gray-600 flex-shrink-0">
             {tutor.experience && (
               <div className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-gray-400" />
-                <span>{tutor.experience}</span>
+                <Clock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <span className="truncate">{tutor.experience}</span>
               </div>
             )}
-            <div className="flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-gray-400" />
-              <span>{tutor.totalStudents || 0} students</span>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Users className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+              <span className="whitespace-nowrap">{tutor.totalStudents || 0} students</span>
             </div>
           </div>
 
           {tutor.location && (
-            <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <div className="flex items-center gap-2 text-gray-600 text-sm flex-shrink-0">
               <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span className="truncate">{tutor.location}</span>
             </div>
           )}
 
           {tutor.classes?.length > 0 && (
-            <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <div className="flex items-center gap-2 text-gray-600 text-sm flex-shrink-0">
               <CalendarDays className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span>
+              <span className="truncate">
                 {tutor.classes.length} class{tutor.classes.length > 1 ? "es" : ""}
                 {schedule.length > 0 && <span className="text-gray-400 ml-1">· {schedule.join(", ")}</span>}
               </span>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={`${modeColors[mode] || modeColors.online} rounded-lg px-3 py-1 text-xs`}>
-              <ModeIcon className="w-3.5 h-3.5 mr-1.5" />
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Badge variant="secondary" className={`${modeColors[mode] || modeColors.online} rounded-lg px-3 py-1 text-xs flex-shrink-0`}>
+              <ModeIcon className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+              <span className="whitespace-nowrap">{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
             </Badge>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100 flex-shrink-0 mt-auto">
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
               <span className="font-bold text-gray-900">{tutor.rating?.toFixed(1) || "New"}</span>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { TimePicker } from "@/components/ui/time-picker"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   ArrowLeft, BookOpen, MapPin, Clock, DollarSign, Users,
@@ -273,7 +274,7 @@ export default function CreateClassPage() {
                     <Clock className="w-4 h-4 text-indigo-500" />
                     Class Time <span className="text-red-500">*</span>
                   </Label>
-                  <Input type="time" value={form.time} onChange={(e) => handleChange("time", e.target.value)} />
+                  <TimePicker value={form.time} onChange={(time) => handleChange("time", time)} />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">

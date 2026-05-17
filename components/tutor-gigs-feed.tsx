@@ -35,7 +35,7 @@ export function TutorGigsFeed() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch" style={{gridAutoRows: '1fr'}}>
             {Array.from({ length: 8 }).map((_, i) => <GigSkeleton key={i} />)}
           </div>
         ) : tutors.length === 0 ? (
@@ -47,9 +47,9 @@ export function TutorGigsFeed() {
             <p className="text-gray-400 text-sm mt-1">Check back soon!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch" style={{gridAutoRows: '1fr'}}>
             {tutors.map((tutor, index) => (
-              <div key={tutor.id} data-aos="fade-up" data-aos-delay={Math.min(index * 60, 300)}>
+              <div key={tutor.id} data-aos="fade-up" data-aos-delay={Math.min(index * 60, 300)} className="flex">
                 <TutorCard tutor={tutor} />
               </div>
             ))}
@@ -71,10 +71,10 @@ function TutorCard({ tutor }: { tutor: any }) {
 
   return (
     <Card
-      className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1"
+      className="group bg-white rounded-2xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 w-full flex flex-col"
       onClick={() => router.push(`/tutor/${tutor.id}`)}
     >
-      <CardContent className="p-0">
+      <CardContent className="p-0 flex flex-col flex-1">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-indigo-50 to-purple-50 p-6 pb-8">
           {tutor.isVerified && (
@@ -104,7 +104,7 @@ function TutorCard({ tutor }: { tutor: any }) {
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-3">
+        <div className="p-5 space-y-3 flex flex-col flex-1">
           <div className="flex items-center justify-between text-xs text-gray-600">
             {tutor.experience && (
               <div className="flex items-center gap-1">
@@ -144,7 +144,7 @@ function TutorCard({ tutor }: { tutor: any }) {
           </div>
 
           {/* Rating and Fee */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-auto">
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
               <span className="font-bold text-gray-900">{tutor.rating?.toFixed(1) || "New"}</span>
