@@ -311,6 +311,18 @@ export function Navbar() {
                           <User className="w-4 h-4 text-gray-400" />
                           View Profile
                         </button>
+                        {activeRole === 'student' && (
+                          <button
+                            onClick={() => {
+                              setIsProfileOpen(false)
+                              router.push('/dashboard/my-classes')
+                            }}
+                            className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <GraduationCap className="w-4 h-4 text-gray-400" />
+                            My Classes
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setIsProfileOpen(false)

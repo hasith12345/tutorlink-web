@@ -25,8 +25,6 @@ export default function TutorProfilePage() {
   const [tutor, setTutor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [enrolling, setEnrolling] = useState<string | null>(null)
-  const [enrollSuccess, setEnrollSuccess] = useState<string | null>(null)
   const isLoggedIn = authStorage.isAuthenticated()
 
   useEffect(() => {
@@ -36,18 +34,9 @@ export default function TutorProfilePage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const handleEnroll = async (classId: string) => {
+  const handleEnroll = (classId: string) => {
     if (!isLoggedIn) { router.push("/login"); return }
-    setEnrolling(classId)
-    try {
-      // TODO: call enroll API when ready
-      await new Promise(r => setTimeout(r, 1000))
-      setEnrollSuccess(classId)
-    } catch {
-      alert("Enrollment failed. Please try again.")
-    } finally {
-      setEnrolling(null)
-    }
+    router.push(`/payment/${id}?classId=${classId}`)
   }
 
   const initials = tutor?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "T"
@@ -205,7 +194,6 @@ export default function TutorProfilePage() {
             <div className="space-y-4">
               {tutor.classes.map((cls: any) => {
                 const ModeIcon = modeIcon[cls.mode as keyof typeof modeIcon] || Monitor
-                const enrolled = enrollSuccess === cls.id
                 return (
                   <div key={cls.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -259,25 +247,17 @@ export default function TutorProfilePage() {
                           <p className="text-xs text-gray-400">/month</p>
                         </div>
 
-                        {enrolled ? (
-                          <div className="flex items-center gap-2 px-5 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium">
-                            <CheckCircle className="w-4 h-4" />Enrolled!
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleEnroll(cls.id)}
-                            disabled={enrolling === cls.id || cls.enrolledCount >= cls.maxStudents}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {enrolling === cls.id ? (
-                              <LoadingSpinner size="sm" />
-                            ) : cls.enrolledCount >= cls.maxStudents ? (
-                              "Class Full"
-                            ) : (
-                              <><span>Enroll Now</span><ChevronRight className="w-4 h-4" /></>
-                            )}
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleEnroll(cls.id)}
+                          disabled={cls.enrolledCount >= cls.maxStudents}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {cls.enrolledCount >= cls.maxStudents ? (
+                            "Class Full"
+                          ) : (
+                            <><span>Enroll Now</span><ChevronRight className="w-4 h-4" /></>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>

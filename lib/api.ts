@@ -565,6 +565,120 @@ class ApiClient {
       headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })
   }
+
+  async createPaymentIntent(classId: string): Promise<{
+    clientSecret: string
+    paymentIntentId: string
+    classDetails: {
+      subject: string
+      description?: string
+      fees: number
+      schedule: string[]
+      time: string
+      duration: string
+      mode: string
+      tutorName: string
+      maxStudents: number
+      enrolledCount: number
+    }
+  }> {
+    return this.request('/payments/create-intent', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      body: JSON.stringify({ classId }),
+    })
+  }
+
+  async confirmPayment(paymentIntentId: string, classId: string): Promise<{
+    enrollmentId: string
+    tutorAmount: number
+    platformAmount: number
+    totalAmount: number
+  }> {
+    return this.request('/payments/confirm', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      body: JSON.stringify({ paymentIntentId, classId }),
+    })
+  }
+
+  async getTutorEarnings(): Promise<{
+    summary: { totalEarned: number; thisMonth: number; count: number }
+    payments: Array<{
+      id: string
+      totalAmount: number
+      tutorAmount: number
+      platformAmount: number
+      status: string
+      paidAt: string | null
+      createdAt: string
+      studentName: string
+      className: string
+      classSchedule: string[]
+      classMode: string
+    }>
+  }> {
+    return this.request('/payments/tutor/earnings', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getStudentEnrollments(): Promise<{
+    enrollments: Array<{
+      enrollmentId: string
+      enrolledAt: string
+      status: string
+      class: {
+        id: string
+        subject: string
+        description?: string
+        mode: string
+        schedule: string[]
+        time: string
+        duration: string
+        fees: number
+        venue?: string
+        tutorId: string
+        tutorName: string
+        tutorAvatar?: string
+      }
+      payment: { totalAmount: number; status: string; paidAt: string | null } | null
+    }>
+  }> {
+    return this.request('/payments/student/enrollments', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getAdminPayments(): Promise<{
+    summary: {
+      totalRevenue: number
+      totalPlatform: number
+      totalTutor: number
+      thisMonth: number
+      count: number
+    }
+    payments: Array<{
+      id: string
+      stripePaymentId: string
+      totalAmount: number
+      tutorAmount: number
+      platformAmount: number
+      currency: string
+      status: string
+      paidAt: string | null
+      createdAt: string
+      studentName: string
+      studentEmail: string
+      tutorName: string
+      className: string
+      classMode: string
+    }>
+  }> {
+    return this.request('/payments/admin', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL)
