@@ -118,24 +118,30 @@ export function TutorNavbar() {
             </span>
           </Link>
 
-          {/* Center Nav Links (Desktop) */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              )
-            })}
+          {/* Center Nav Links (Desktop) — pill/search-bar style */}
+          <div className="hidden lg:flex items-center">
+            <div className="flex items-center bg-white border border-gray-200 rounded-full shadow-sm">
+              {navItems.map((item, index) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
+                return (
+                  <div key={item.href} className="flex items-center">
+                    {index !== 0 && (
+                      <div className="w-px h-4 bg-gray-200 flex-shrink-0" />
+                    )}
+                    <Link
+                      href={item.href}
+                      className={`flex items-center px-4 py-2 text-xs font-bold transition-all whitespace-nowrap rounded-full
+                        ${isActive
+                          ? "text-indigo-700"
+                          : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                        }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* Right Side */}

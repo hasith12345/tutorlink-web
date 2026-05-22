@@ -1,6 +1,30 @@
 // API configuration and utilities
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'
 
+export interface ClassMaterial {
+  id: string
+  folderId: string
+  name: string
+  description?: string | null
+  url: string
+  publicId: string
+  resourceType: string
+  mimeType: string
+  sizeBytes?: number | null
+  isPublished: boolean
+  createdAt: string
+}
+
+export interface ClassFolder {
+  id: string
+  classId: string
+  name: string
+  order: number
+  createdAt: string
+  updatedAt: string
+  materials: ClassMaterial[]
+}
+
 export interface SignupData {
   fullName: string
   email: string
@@ -517,6 +541,76 @@ class ApiClient {
     })
   }
 
+  // ✅ Class folder & material endpoints
+  async getClassFolders(classId: string): Promise<{ folders: ClassFolder[]; isTutorOwner: boolean }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async createClassFolder(classId: string, name: string): Promise<{ folder: ClassFolder }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ name }),
+    })
+  }
+
+  async updateClassFolder(classId: string, folderId: string, data: { name?: string; order?: number }): Promise<{ folder: ClassFolder }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders/${folderId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteClassFolder(classId: string, folderId: string): Promise<{ message: string }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders/${folderId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async updateClassMaterial(classId: string, materialId: string, data: { isPublished?: boolean; description?: string }): Promise<{ material: ClassMaterial }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/materials/${materialId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteClassMaterial(classId: string, materialId: string): Promise<{ message: string }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/materials/${materialId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async uploadClassMaterial(folderId: string, file: File, description?: string): Promise<{ material: ClassMaterial }> {
+    const token = authStorage.getToken()
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folderId', folderId)
+    if (description) formData.append('description', description)
+    const response = await fetch(`${API_BASE_URL}/upload/class-material`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Upload failed' }))
+      throw new Error(err.message || 'Upload failed')
+    }
+    return response.json()
+  }
+
   // ✅ Admin endpoints
   async getAdminApplications(status?: string): Promise<{ applications: any[] }> {
     const query = status ? `?status=${status}` : ''
@@ -623,6 +717,34 @@ class ApiClient {
     })
   }
 
+  async getTutorStudents(): Promise<{
+    students: Array<{
+      id: string
+      fullName: string
+      email: string
+      avatar: string | null
+      enrolledAt: string
+      enrolledClasses: Array<{
+        enrollmentId: string
+        classId: string
+        subject: string
+        description?: string | null
+        schedule: string[]
+        mode: string
+        fees: number
+        time: string
+        enrolledAt: string
+        payment: { totalAmount: number; status: string; paidAt: string | null } | null
+      }>
+    }>
+    totalStudents: number
+    totalEnrollments: number
+  }> {
+    return this.request('/payments/tutor/students', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
   async getStudentEnrollments(): Promise<{
     enrollments: Array<{
       enrollmentId: string
@@ -638,6 +760,7 @@ class ApiClient {
         duration: string
         fees: number
         venue?: string
+        meetingLink?: string | null
         tutorId: string
         tutorName: string
         tutorAvatar?: string

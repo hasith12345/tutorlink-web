@@ -7,7 +7,7 @@ import { api, authStorage } from "@/lib/api"
 import {
   ArrowLeft, Star, MapPin, Users, Clock, Award, BookOpen,
   CalendarDays, Monitor, Building, Video, CheckCircle,
-  GraduationCap, Briefcase, ChevronRight,
+  GraduationCap, Briefcase, ChevronRight, BadgeCheck,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/loading-spinner"
@@ -25,13 +25,28 @@ export default function TutorProfilePage() {
   const [tutor, setTutor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [enrolledClassIds, setEnrolledClassIds] = useState<Set<string>>(new Set())
   const isLoggedIn = authStorage.isAuthenticated()
 
   useEffect(() => {
-    api.getTutorById(id)
-      .then(res => setTutor(res.tutor))
-      .catch(() => setError("Tutor not found"))
-      .finally(() => setLoading(false))
+    const loadData = async () => {
+      try {
+        const [tutorRes] = await Promise.all([
+          api.getTutorById(id),
+          isLoggedIn
+            ? api.getStudentEnrollments()
+                .then(res => setEnrolledClassIds(new Set(res.enrollments.map(e => e.class.id))))
+                .catch(() => {})
+            : Promise.resolve(),
+        ])
+        setTutor(tutorRes.tutor)
+      } catch {
+        setError("Tutor not found")
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
   }, [id])
 
   const handleEnroll = (classId: string) => {
@@ -247,17 +262,24 @@ export default function TutorProfilePage() {
                           <p className="text-xs text-gray-400">/month</p>
                         </div>
 
-                        <button
-                          onClick={() => handleEnroll(cls.id)}
-                          disabled={cls.enrolledCount >= cls.maxStudents}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {cls.enrolledCount >= cls.maxStudents ? (
-                            "Class Full"
-                          ) : (
-                            <><span>Enroll Now</span><ChevronRight className="w-4 h-4" /></>
-                          )}
-                        </button>
+                        {enrolledClassIds.has(cls.id) ? (
+                          <div className="flex items-center gap-2 px-5 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-semibold">
+                            <BadgeCheck className="w-4 h-4" />
+                            Enrolled
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleEnroll(cls.id)}
+                            disabled={cls.enrolledCount >= cls.maxStudents}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {cls.enrolledCount >= cls.maxStudents ? (
+                              "Class Full"
+                            ) : (
+                              <><span>Enroll Now</span><ChevronRight className="w-4 h-4" /></>
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

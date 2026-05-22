@@ -34,6 +34,7 @@ export default function TutorDashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [tutorStatus, setTutorStatus] = useState<string>("NOT_SUBMITTED")
   const [classes, setClasses] = useState<any[]>([])
+  const [earnings, setEarnings] = useState<{ totalEarned: number; thisMonth: number; recentPayments: any[] } | null>(null)
   const [showWelcome, setShowWelcome] = useState(() => {
     if (typeof window === "undefined") return true
     return localStorage.getItem("tutorWelcomeDismissed") !== "true"
@@ -62,14 +63,22 @@ export default function TutorDashboardPage() {
 
       // Fetch current user with role flags and tutor status
       try {
-        const [currentUserRes, statusRes, classesRes] = await Promise.all([
+        const [currentUserRes, statusRes, classesRes, earningsRes] = await Promise.all([
           api.getCurrentUser(),
           api.getTutorApplicationStatus(),
           api.getMyClasses().catch(() => ({ classes: [] })),
+          api.getTutorEarnings().catch(() => null),
         ])
 
         setTutorStatus(statusRes.tutorStatus)
         setClasses((classesRes.classes || []).filter((c: any) => c.status === "ACTIVE"))
+        if (earningsRes) {
+          setEarnings({
+            totalEarned: earningsRes.summary.totalEarned,
+            thisMonth: earningsRes.summary.thisMonth,
+            recentPayments: earningsRes.payments.slice(0, 4),
+          })
+        }
 
         // Sync user data with latest info from backend
         const syncedUser = {
@@ -379,28 +388,59 @@ export default function TutorDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Class Stats */}
+            {/* Earnings Overview */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Class Overview</h2>
-                {classes.length === 0 ? (
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Earnings Overview</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push("/tutor/earnings")}
+                    className="text-indigo-600 hover:text-indigo-700"
+                  >
+                    View all <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+
+                {/* This month & total */}
+                {earnings && (
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-indigo-50 rounded-xl p-3">
+                      <p className="text-xs text-indigo-500 font-medium mb-1">This Month</p>
+                      <p className="text-lg font-bold text-indigo-700">Rs.{earnings.thisMonth.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-3">
+                      <p className="text-xs text-emerald-500 font-medium mb-1">Total Earned</p>
+                      <p className="text-lg font-bold text-emerald-700">Rs.{earnings.totalEarned.toLocaleString()}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent payments */}
+                {!earnings || earnings.recentPayments.length === 0 ? (
                   <div className="text-center py-6">
-                    <p className="text-sm text-gray-400">No classes yet</p>
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <DollarSign className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-400">No payments yet</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {classes.slice(0, 4).map((cls: any) => (
-                      <div key={cls.id} className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                          <BookOpen className="w-4 h-4 text-indigo-600" />
+                  <div className="space-y-2">
+                    {earnings.recentPayments.map((p: any) => (
+                      <div key={p.id} className="flex items-center gap-3 py-2 border-t border-gray-50 first:border-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {p.studentName?.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{cls.subject}</p>
-                          <p className="text-xs text-gray-500">{cls.schedule?.join(", ")} · {cls.time}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{p.studentName}</p>
+                          <p className="text-xs text-gray-500 truncate">{p.className}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-xs font-semibold text-indigo-600">Rs.{cls.fees?.toLocaleString()}</p>
-                          <p className="text-[10px] text-gray-400">{cls.enrolledCount || 0}/{cls.maxStudents}</p>
+                          <p className="text-sm font-bold text-emerald-600">+Rs.{p.tutorAmount.toLocaleString()}</p>
+                          <p className="text-[10px] text-gray-400">
+                            {p.paidAt ? new Date(p.paidAt).toLocaleDateString("en-US", { day: "numeric", month: "short" }) : "—"}
+                          </p>
                         </div>
                       </div>
                     ))}

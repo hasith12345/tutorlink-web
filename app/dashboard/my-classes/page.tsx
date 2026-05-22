@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   GraduationCap, CalendarDays, Clock, Monitor, Building,
-  ChevronRight, BookOpen, ArrowLeft,
+  ChevronRight, BookOpen, ArrowLeft, Video,
 } from "lucide-react"
 import { api } from "@/lib/api"
 
@@ -77,7 +77,7 @@ export default function MyClassesPage() {
                 <Card
                   key={e.enrollmentId}
                   className="bg-white rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => router.push(`/tutor/${e.class.tutorId}`)}
+                  onClick={() => router.push(`/dashboard/my-classes/${e.class.id}`)}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4">
@@ -146,18 +146,25 @@ export default function MyClassesPage() {
                       </div>
                     </div>
 
-                    {e.payment && (
-                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                        <span>
-                          Enrolled {new Date(e.enrolledAt).toLocaleDateString("en-US", {
-                            day: "numeric", month: "short", year: "numeric",
-                          })}
-                        </span>
-                        <span className="text-green-600 font-medium">
+                    {/* Quick actions row */}
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+                      {e.class.meetingLink && (
+                        <a
+                          href={e.class.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={ev => ev.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors"
+                        >
+                          <Video className="w-3.5 h-3.5" /> Join Class
+                        </a>
+                      )}
+                      {e.payment && (
+                        <span className="ml-auto text-xs text-green-600 font-medium">
                           Paid Rs.{e.payment.totalAmount.toLocaleString()}
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )
