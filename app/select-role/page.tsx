@@ -87,13 +87,21 @@ export default function SelectRolePage() {
       <div className="max-w-4xl w-full">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-800 mb-3">
-            Welcome back, {user?.fullName || 'User'}! 👋
-          </h1>
-          <p className="text-lg text-slate-600">
-            You have access to both Student and Tutor profiles.
+          <p
+            className="text-base text-indigo-400 mb-2 tracking-widest"
+            style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}
+          >
+            welcome back
           </p>
-          <p className="text-slate-500 mt-2">
+          <h1
+            className="text-5xl md:text-6xl font-black text-slate-800 mb-3 leading-tight"
+          >
+            {user?.fullName?.split(" ")[0] || 'Hey'} <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">👋</span>
+          </h1>
+          <p
+            className="text-xl text-slate-500 mt-2"
+            style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+          >
             Choose how you'd like to continue:
           </p>
         </div>
@@ -113,7 +121,7 @@ export default function SelectRolePage() {
               <GraduationCap className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors" />
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">
               Continue as Student
             </h2>
             <p className="text-slate-600 mb-4">
@@ -135,7 +143,10 @@ export default function SelectRolePage() {
               </div>
             </div>
 
-            <div className="mt-6 inline-flex items-center text-indigo-600 font-semibold group-hover:translate-x-2 transition-transform">
+            <div
+              className="mt-6 inline-flex items-center text-indigo-600 font-semibold group-hover:translate-x-2 transition-transform"
+              style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+            >
               Browse as Student
               <ArrowRight className="w-4 h-4 ml-2" />
             </div>
@@ -154,7 +165,7 @@ export default function SelectRolePage() {
               <Users className="w-8 h-8 text-purple-600 group-hover:text-white transition-colors" />
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">
               Continue as Tutor
             </h2>
             <p className="text-slate-600 mb-4">
@@ -176,7 +187,10 @@ export default function SelectRolePage() {
               </div>
             </div>
 
-            <div className="mt-6 inline-flex items-center text-purple-600 font-semibold group-hover:translate-x-2 transition-transform">
+            <div
+              className="mt-6 inline-flex items-center text-purple-600 font-semibold group-hover:translate-x-2 transition-transform"
+              style={{ fontFamily: 'var(--font-delicious-handrawn)' }}
+            >
               Enter Dashboard as Tutor
               <ArrowRight className="w-4 h-4 ml-2" />
             </div>

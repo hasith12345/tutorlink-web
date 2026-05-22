@@ -7,9 +7,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   ArrowLeft, DollarSign, TrendingUp, Users, CalendarDays,
-  Loader2, Receipt, Monitor, Building,
+  Receipt, Monitor, Building,
 } from "lucide-react"
 import { api } from "@/lib/api"
+import { LoadingSpinner } from "@/components/loading-spinner"
 
 export default function TutorEarningsPage() {
   const router = useRouter()
@@ -46,8 +47,8 @@ export default function TutorEarningsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <LoadingSpinner size="lg" />
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">

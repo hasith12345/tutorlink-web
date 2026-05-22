@@ -121,12 +121,6 @@ export default function TutorClassesPage() {
 
   const openStudents = (cls: any) => { setStudentsTarget(cls); setActionMenuOpen(null) }
 
-  if (isLoading) return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-      <LoadingSpinner size="lg" />
-    </div>
-  )
-
   const activeClasses = classes.filter(c => c.status === "ACTIVE")
   const cancelledClasses = classes.filter(c => c.status === "CANCELLED")
 
@@ -239,15 +233,21 @@ export default function TutorClassesPage() {
           </Button>
         </div>
 
-        {tutorStatus !== "APPROVED" && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-amber-800">Approval Required</h3>
-              <p className="text-sm text-amber-700 mt-0.5">You need to be an approved tutor to create and manage classes.</p>
-            </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <LoadingSpinner size="lg" />
           </div>
-        )}
+        ) : (
+          <>
+            {tutorStatus !== "APPROVED" && (
+              <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-amber-800">Approval Required</h3>
+                  <p className="text-sm text-amber-700 mt-0.5">You need to be an approved tutor to create and manage classes.</p>
+                </div>
+              </div>
+            )}
 
         {tutorStatus === "APPROVED" && classes.length === 0 && (
           <Card className="border-0 shadow-sm">
@@ -290,6 +290,8 @@ export default function TutorClassesPage() {
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
       </main>
 
