@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
-import { api, authStorage } from "@/lib/api"
+import { api, authStorage, Review } from "@/lib/api"
 import {
   ArrowLeft, Star, MapPin, Users, Clock, Award, BookOpen,
   CalendarDays, Monitor, Building, Video, CheckCircle,
@@ -26,20 +26,23 @@ export default function TutorProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [enrolledClassIds, setEnrolledClassIds] = useState<Set<string>>(new Set())
+  const [reviews, setReviews] = useState<Review[]>([])
   const isLoggedIn = authStorage.isAuthenticated()
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tutorRes] = await Promise.all([
+        const [tutorRes, reviewsRes] = await Promise.all([
           api.getTutorById(id),
-          isLoggedIn
-            ? api.getStudentEnrollments()
-                .then(res => setEnrolledClassIds(new Set(res.enrollments.map(e => e.class.id))))
-                .catch(() => {})
-            : Promise.resolve(),
+          api.getTutorReviews(id),
         ])
         setTutor(tutorRes.tutor)
+        setReviews(reviewsRes.reviews)
+        if (isLoggedIn) {
+          api.getStudentEnrollments()
+            .then(res => setEnrolledClassIds(new Set(res.enrollments.map(e => e.class.id))))
+            .catch(() => {})
+        }
       } catch {
         setError("Tutor not found")
       } finally {
@@ -279,6 +282,65 @@ export default function TutorProfilePage() {
                               <><span>Enroll Now</span><ChevronRight className="w-4 h-4" /></>
                             )}
                           </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-8">
+          <div className="flex items-center gap-3 mb-5">
+            <h2 className="text-lg font-bold text-gray-900">Reviews</h2>
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span className="text-sm font-bold text-amber-700">{tutor?.rating?.toFixed(1)}</span>
+                <span className="text-xs text-amber-500">({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
+              </div>
+            )}
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Star className="w-6 h-6 text-amber-300" />
+              </div>
+              <p className="text-gray-500 font-medium text-sm">No reviews yet</p>
+              <p className="text-gray-400 text-xs mt-1">Be the first to review this tutor</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map(review => {
+                const initials = review.studentName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+                return (
+                  <div key={review.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-start gap-3">
+                      {review.studentAvatar ? (
+                        <img src={review.studentAvatar} alt={review.studentName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-sm font-semibold text-gray-900">{review.studentName}</p>
+                          <p className="text-xs text-gray-400 flex-shrink-0">
+                            {new Date(review.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-0.5 mb-2">
+                          {[1,2,3,4,5].map(i => (
+                            <Star key={i} className={`w-3.5 h-3.5 ${i <= review.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
+                          ))}
+                        </div>
+                        {review.comment && (
+                          <p className="text-sm text-gray-600">{review.comment}</p>
                         )}
                       </div>
                     </div>

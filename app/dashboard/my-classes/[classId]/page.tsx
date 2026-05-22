@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { api, ClassFolder, ClassMaterial } from "@/lib/api"
+import { api, ClassFolder, ClassMaterial, Review } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Badge } from "@/components/ui/badge"
 import {
   ArrowLeft, Video, Monitor, Building, CalendarDays, Clock,
-  MapPin, Users, FolderOpen, Folder, FileText, Image, VideoIcon,
+  MapPin, FolderOpen, Folder, FileText, Image, VideoIcon,
   Download, ChevronDown, ChevronRight, BookOpen, Link as LinkIcon,
-  GraduationCap,
+  Star, Trash2, Loader2,
 } from "lucide-react"
 
 function formatBytes(bytes?: number | null) {
@@ -38,6 +38,15 @@ export default function ClassDetailPage() {
   const [tab, setTab] = useState<"details" | "materials">("details")
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
 
+  // Rating state
+  const [existingReview, setExistingReview] = useState<Review | null>(null)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [selectedRating, setSelectedRating] = useState(0)
+  const [reviewComment, setReviewComment] = useState("")
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviewError, setReviewError] = useState("")
+  const [deletingReview, setDeletingReview] = useState(false)
+
   useEffect(() => {
     async function load() {
       try {
@@ -49,8 +58,15 @@ export default function ClassDetailPage() {
         if (!found) { setError("Class not found"); return }
         setEnrollment(found)
         setFolders(foldersRes.folders)
-        // Auto-expand folders with materials
         setExpandedFolders(new Set(foldersRes.folders.filter(f => f.materials.length > 0).map(f => f.id)))
+
+        // Check if already reviewed
+        const reviewRes = await api.getMyReview(found.enrollmentId)
+        if (reviewRes.review) {
+          setExistingReview(reviewRes.review)
+          setSelectedRating(reviewRes.review.rating)
+          setReviewComment(reviewRes.review.comment || "")
+        }
       } catch (e: any) {
         setError(e.message || "Failed to load class")
       } finally {
@@ -59,6 +75,39 @@ export default function ClassDetailPage() {
     }
     load()
   }, [classId])
+
+  async function handleSubmitReview() {
+    if (!selectedRating) { setReviewError("Please select a star rating"); return }
+    setSubmittingReview(true)
+    setReviewError("")
+    try {
+      const res = await api.submitReview({
+        enrollmentId: enrollment.enrollmentId,
+        rating: selectedRating,
+        comment: reviewComment.trim() || undefined,
+      })
+      setExistingReview(res.review)
+    } catch (e: any) {
+      setReviewError(e.message || "Failed to submit review")
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  async function handleDeleteReview() {
+    if (!existingReview) return
+    setDeletingReview(true)
+    try {
+      await api.deleteReview(existingReview.id)
+      setExistingReview(null)
+      setSelectedRating(0)
+      setReviewComment("")
+    } catch (e: any) {
+      setReviewError(e.message)
+    } finally {
+      setDeletingReview(false)
+    }
+  }
 
   function toggleFolder(id: string) {
     setExpandedFolders(prev => {
@@ -254,6 +303,83 @@ export default function ClassDetailPage() {
                     </a>
                   </div>
                 )}
+
+                {/* Rate your Tutor */}
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-gray-800">Rate your Tutor</h3>
+                    {existingReview && (
+                      <button
+                        onClick={handleDeleteReview}
+                        disabled={deletingReview}
+                        className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors"
+                      >
+                        {deletingReview ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Star picker */}
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        key={star}
+                        disabled={!!existingReview}
+                        onMouseEnter={() => !existingReview && setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => !existingReview && setSelectedRating(star)}
+                        className="transition-transform hover:scale-110 disabled:cursor-default"
+                      >
+                        <Star
+                          className={`w-7 h-7 transition-colors ${
+                            star <= (hoverRating || selectedRating)
+                              ? "text-amber-400 fill-amber-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    {selectedRating > 0 && (
+                      <span className="ml-2 text-sm font-semibold text-amber-600">
+                        {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][selectedRating]}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Comment */}
+                  {!existingReview && (
+                    <textarea
+                      rows={2}
+                      placeholder="Share your experience (optional)…"
+                      value={reviewComment}
+                      onChange={e => setReviewComment(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none bg-white mb-3"
+                    />
+                  )}
+
+                  {existingReview?.comment && (
+                    <p className="text-sm text-gray-600 italic mb-3">"{existingReview.comment}"</p>
+                  )}
+
+                  {reviewError && <p className="text-xs text-red-500 mb-2">{reviewError}</p>}
+
+                  {!existingReview ? (
+                    <button
+                      onClick={handleSubmitReview}
+                      disabled={submittingReview || !selectedRating}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors"
+                    >
+                      {submittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
+                      Submit Review
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
+                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      Review submitted — thank you!
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               /* Materials Tab */

@@ -33,6 +33,8 @@ export default function TutorDashboardPage() {
   const [tutorStatus, setTutorStatus] = useState<string>("NOT_SUBMITTED")
   const [classes, setClasses] = useState<any[]>([])
   const [totalStudents, setTotalStudents] = useState(0)
+  const [tutorRating, setTutorRating] = useState<number>(0)
+  const [tutorTotalReviews, setTutorTotalReviews] = useState<number>(0)
   const [earnings, setEarnings] = useState<{ totalEarned: number; thisMonth: number; recentPayments: any[] } | null>(null)
   const [showWelcome, setShowWelcome] = useState(() => {
     if (typeof window === "undefined") return true
@@ -71,6 +73,8 @@ export default function TutorDashboardPage() {
         ])
 
         setTutorStatus(statusRes.tutorStatus)
+        setTutorRating(statusRes.profile?.rating ?? 0)
+        setTutorTotalReviews(statusRes.profile?.totalReviews ?? 0)
         setClasses((classesRes.classes || []).filter((c: any) => c.status === "ACTIVE"))
         if (studentsRes) setTotalStudents(studentsRes.totalStudents)
         if (earningsRes) {
@@ -214,14 +218,14 @@ export default function TutorDashboardPage() {
             },
             {
               label: "Average Rating",
-              value: user?.rating?.toFixed(1) ?? "—",
-              sub: null,
+              value: tutorRating > 0 ? tutorRating.toFixed(1) : "—",
+              sub: tutorTotalReviews > 0 ? `${tutorTotalReviews} review${tutorTotalReviews !== 1 ? "s" : ""}` : "no reviews yet",
               icon: <Star className="w-5 h-5 text-amber-500" />,
               iconBg: "bg-amber-50",
               extra: (
                 <div className="flex items-center gap-0.5 mt-1">
                   {[1,2,3,4,5].map(i => (
-                    <Star key={i} className={`w-3 h-3 ${i <= Math.round(user?.rating ?? 0) ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
+                    <Star key={i} className={`w-3 h-3 ${i <= Math.round(tutorRating) ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
                   ))}
                 </div>
               ),

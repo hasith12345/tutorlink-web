@@ -1,6 +1,18 @@
 // API configuration and utilities
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'
 
+export interface Review {
+  id: string
+  tutorId: string
+  studentId: string
+  enrollmentId: string
+  rating: number
+  comment?: string | null
+  createdAt: string
+  studentName: string
+  studentAvatar?: string | null
+}
+
 export interface ClassMaterial {
   id: string
   folderId: string
@@ -741,6 +753,32 @@ class ApiClient {
     totalEnrollments: number
   }> {
     return this.request('/payments/tutor/students', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // ✅ Review endpoints
+  async submitReview(data: { enrollmentId: string; rating: number; comment?: string }): Promise<{ review: Review }> {
+    return this.request('/reviews', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getTutorReviews(tutorId: string): Promise<{ reviews: Review[] }> {
+    return this.request(`/reviews/tutor/${tutorId}`)
+  }
+
+  async getMyReview(enrollmentId: string): Promise<{ review: Review | null }> {
+    return this.request(`/reviews/my-review/${enrollmentId}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async deleteReview(reviewId: string): Promise<{ message: string }> {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'DELETE',
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }
