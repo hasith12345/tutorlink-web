@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, CheckCheck, User, ArrowLeftRight } from "lucide-react"
+import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, CheckCheck, User, ArrowLeftRight, MessageCircle as MessageCircleIcon } from "lucide-react"
 import { authStorage } from "@/lib/api"
 import { useNotifications } from "@/hooks/use-notifications"
 
@@ -308,16 +308,28 @@ export function Navbar() {
                           View Profile
                         </button>
                         {activeRole === 'student' && (
-                          <button
-                            onClick={() => {
-                              setIsProfileOpen(false)
-                              router.push('/dashboard/my-classes')
-                            }}
-                            className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <GraduationCap className="w-4 h-4 text-gray-400" />
-                            My Classes
-                          </button>
+                          <>
+                            <button
+                              onClick={() => {
+                                setIsProfileOpen(false)
+                                router.push('/dashboard/my-classes')
+                              }}
+                              className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <GraduationCap className="w-4 h-4 text-gray-400" />
+                              My Classes
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsProfileOpen(false)
+                                router.push('/dashboard/messages')
+                              }}
+                              className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <MessageCircleIcon className="w-4 h-4 text-gray-400" />
+                              Messages
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => {

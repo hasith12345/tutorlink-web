@@ -10,7 +10,7 @@ import {
   ArrowLeft, Video, Monitor, Building, CalendarDays, Clock,
   MapPin, FolderOpen, Folder, FileText, Image, VideoIcon,
   Download, ChevronDown, ChevronRight, BookOpen, Link as LinkIcon,
-  Star, Trash2, Loader2,
+  Star, Trash2, Loader2, MessageCircle,
 } from "lucide-react"
 
 function formatBytes(bytes?: number | null) {
@@ -214,17 +214,25 @@ export default function ClassDetailPage() {
               </div>
             </div>
 
-            {/* Join Class button */}
-            {cls.meetingLink && (
-              <a
-                href={cls.meetingLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-md shadow-indigo-200"
+            {/* Action buttons */}
+            <div className="mt-4 flex flex-wrap gap-3">
+              {cls.meetingLink && (
+                <a
+                  href={cls.meetingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-md shadow-indigo-200"
+                >
+                  <Video className="w-4 h-4" /> Join Class
+                </a>
+              )}
+              <button
+                onClick={() => router.push(`/dashboard/messages?tutorId=${cls.tutorId}`)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 text-indigo-700 border border-indigo-200 text-sm font-semibold rounded-xl transition-colors"
               >
-                <Video className="w-4 h-4" /> Join Class
-              </a>
-            )}
+                <MessageCircle className="w-4 h-4" /> Message Tutor
+              </button>
+            </div>
           </div>
         </div>
 

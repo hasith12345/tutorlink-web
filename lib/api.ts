@@ -11,6 +11,31 @@ export interface Notification {
   createdAt: string
 }
 
+export interface ChatMessage {
+  id: string
+  conversationId: string
+  content: string
+  senderId: string
+  senderName: string
+  read: boolean
+  createdAt: string
+  isMine: boolean
+}
+
+export interface ConversationSummary {
+  id: string
+  otherParty: { id: string; name: string; avatar: string | null; role: 'student' | 'tutor' }
+  lastMessage: ChatMessage | null
+  unreadCount: number
+  updatedAt: string
+}
+
+export interface ConversationDetail {
+  id: string
+  otherParty: { id: string; name: string; avatar: string | null; role: 'student' | 'tutor' }
+  messages: ChatMessage[]
+}
+
 export interface Review {
   id: string
   tutorId: string
@@ -915,6 +940,43 @@ class ApiClient {
     }>
   }> {
     return this.request('/payments/admin', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // Messaging endpoints
+  async getConversations(role?: 'student' | 'tutor'): Promise<{ conversations: ConversationSummary[] }> {
+    const query = role ? `?role=${role}` : ''
+    return this.request(`/messages/conversations${query}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async createOrGetConversation(tutorId: string): Promise<{ conversation: ConversationSummary }> {
+    return this.request('/messages/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ tutorId }),
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getConversationMessages(conversationId: string): Promise<{ conversation: ConversationDetail }> {
+    return this.request(`/messages/conversations/${conversationId}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async sendMessage(conversationId: string, content: string): Promise<{ message: ChatMessage }> {
+    return this.request(`/messages/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async markConversationRead(conversationId: string): Promise<{ message: string }> {
+    return this.request(`/messages/conversations/${conversationId}/read`, {
+      method: 'PUT',
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }
