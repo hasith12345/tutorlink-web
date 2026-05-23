@@ -1,6 +1,16 @@
 // API configuration and utilities
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'
 
+export interface Notification {
+  id: string
+  userId: string
+  type: string
+  title: string
+  message: string
+  read: boolean
+  createdAt: string
+}
+
 export interface Review {
   id: string
   tutorId: string
@@ -808,6 +818,74 @@ class ApiClient {
   }> {
     return this.request('/payments/student/enrollments', {
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // ✅ Notification endpoints
+  async getNotifications(): Promise<{ notifications: Notification[] }> {
+    return this.request('/notifications', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async markAsRead(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async markAllAsRead(): Promise<{ message: string }> {
+    return this.request('/notifications/read-all', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async deleteNotification(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getUnreadCount(): Promise<{ count: number }> {
+    return this.request('/notifications/unread-count', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // Admin notification endpoints
+  async getAdminNotifications(): Promise<{ notifications: Notification[] }> {
+    return this.request('/notifications/admin', {
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async getAdminUnreadCount(): Promise<{ count: number }> {
+    return this.request('/notifications/admin/unread-count', {
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async markAdminAsRead(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/admin/${id}/read`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async markAllAdminAsRead(): Promise<{ message: string }> {
+    return this.request('/notifications/admin/read-all', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async deleteAdminNotification(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/admin/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })
   }
 

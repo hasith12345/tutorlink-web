@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import {
@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { api } from "@/lib/api"
 
 const navItems = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -28,12 +29,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [checking, setChecking] = useState(true)
+  const [adminUnreadCount, setAdminUnreadCount] = useState(0)
+  const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (pathname === "/admin/login") { setChecking(false); return }
     const auth = localStorage.getItem("adminAuth")
     if (!auth) { router.replace("/admin/login") } else { setChecking(false) }
   }, [pathname, router])
+
+  useEffect(() => {
+    if (pathname === "/admin/login") return
+
+    const fetchCount = async () => {
+      try {
+        const { count } = await api.getAdminUnreadCount()
+        setAdminUnreadCount(count)
+      } catch {}
+    }
+
+    fetchCount()
+    pollRef.current = setInterval(fetchCount, 15000)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [pathname])
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth")
@@ -121,6 +139,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Menu className="w-5 h-5" />
           </button>
           <span className="font-semibold text-gray-700 text-sm">Admin Portal</span>
+          <div className="ml-auto">
+            <Link href="/admin/notifications" className="relative p-2 rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors inline-flex">
+              <Bell className="w-5 h-5" />
+              {adminUnreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                  {adminUnreadCount > 9 ? '9+' : adminUnreadCount}
+                </span>
+              )}
+            </Link>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto bg-gray-50">

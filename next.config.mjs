@@ -21,7 +21,7 @@ const nextConfig = {
               "img-src 'self' data: blob: https: http:",
               "font-src 'self' data: https://fonts.gstatic.com",
               "frame-src 'self' https://accounts.google.com https://*.auth0.com https://dev-qeqx7zzpkuws7tt4.us.auth0.com https://js.stripe.com https://hooks.stripe.com",
-              "connect-src 'self' http://localhost:5001 https://accounts.google.com https://accounts.youtube.com https://*.auth0.com https://dev-qeqx7zzpkuws7tt4.us.auth0.com https://vitals.vercel-insights.com https://api.stripe.com",
+              "connect-src 'self' http://localhost:5001 ws://localhost:5001 https://accounts.google.com https://accounts.youtube.com https://*.auth0.com https://dev-qeqx7zzpkuws7tt4.us.auth0.com https://vitals.vercel-insights.com https://api.stripe.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'"

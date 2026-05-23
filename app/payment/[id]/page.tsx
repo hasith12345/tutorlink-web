@@ -42,6 +42,7 @@ function CheckoutForm({
   const elements = useElements()
   const router = useRouter()
   const [processing, setProcessing] = useState(false)
+  const [elementsReady, setElementsReady] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 
   const platformFee = Math.round(classDetails.fees * 0.08)
@@ -49,7 +50,8 @@ function CheckoutForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stripe || !elements) return
+    // Guard: must be an actual user click, not an auto-trigger
+    if (!stripe || !elements || !elementsReady || processing) return
 
     setProcessing(true)
     setErrorMessage("")
@@ -83,7 +85,7 @@ function CheckoutForm({
           <Lock className="w-4 h-4 text-green-500" />
           Secure Payment
         </h2>
-        <PaymentElement />
+        <PaymentElement onReady={() => setElementsReady(true)} />
       </div>
 
       {errorMessage && (
@@ -94,7 +96,7 @@ function CheckoutForm({
 
       <Button
         type="submit"
-        disabled={!stripe || processing}
+        disabled={!stripe || !elements || !elementsReady || processing}
         className="w-full h-12 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50"
       >
         {processing ? (
