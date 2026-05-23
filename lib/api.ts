@@ -823,6 +823,12 @@ class ApiClient {
       enrollmentId: string
       enrolledAt: string
       status: string
+      unenrolledAt?: string | null
+      accessUntil?: string | null
+      isPaymentDue?: boolean
+      accessBlocked?: boolean
+      nextPaymentDue?: string | null
+      accessExpiresAt?: string | null
       class: {
         id: string
         subject: string
@@ -842,6 +848,16 @@ class ApiClient {
     }>
   }> {
     return this.request('/payments/student/enrollments', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async unenrollFromClass(enrollmentId: string): Promise<{
+    message: string
+    enrollment: { id: string; status: string; unenrolledAt: string; accessUntil: string }
+  }> {
+    return this.request(`/payments/student/enrollments/${enrollmentId}/unenroll`, {
+      method: 'POST',
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }

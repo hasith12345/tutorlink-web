@@ -128,7 +128,21 @@ export default function MyClassesPage() {
                           <p className="text-[10px] text-gray-400">Monthly</p>
                           <p className="font-bold text-indigo-600 text-sm">Rs.{e.class.fees.toLocaleString()}</p>
                         </div>
-                        <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">Active</Badge>
+                        {e.status === "UNENROLLED" && e.accessUntil ? (
+                          <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">
+                            Ends {new Date(e.accessUntil).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                          </Badge>
+                        ) : e.accessBlocked ? (
+                          <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">
+                            Access Blocked
+                          </Badge>
+                        ) : e.isPaymentDue ? (
+                          <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">
+                            Payment Due
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">Active</Badge>
+                        )}
                         <ChevronRight className="w-4 h-4 text-gray-300" />
                       </div>
                     </div>
@@ -136,7 +150,7 @@ export default function MyClassesPage() {
                     {/* Quick actions row — only shown when there's content */}
                     {(e.class.meetingLink || e.payment) && (
                       <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2">
-                        {e.class.meetingLink && (
+                        {e.class.meetingLink && !e.accessBlocked && (
                           <a
                             href={e.class.meetingLink}
                             target="_blank"
@@ -146,6 +160,11 @@ export default function MyClassesPage() {
                           >
                             <Video className="w-3 h-3" /> Join Class
                           </a>
+                        )}
+                        {e.accessBlocked && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 text-xs font-medium rounded-lg">
+                            <Clock className="w-3 h-3" /> Renew to access
+                          </span>
                         )}
                         {e.payment && (
                           <span className="ml-auto text-xs text-green-600 font-medium">

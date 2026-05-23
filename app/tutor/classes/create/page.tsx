@@ -144,7 +144,7 @@ export default function CreateClassPage() {
 
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Create a New Class</h1>
-          <p className="text-gray-500 mt-1 text-sm">Monthly enrollment class — students pay per month</p>
+          <p className="text-gray-500 mt-1 text-sm">Monthly enrollment class - students pay per month</p>
         </div>
 
         <Card className="border-0 shadow-sm">
@@ -299,6 +299,17 @@ export default function CreateClassPage() {
                     placeholder="e.g., 2500"
                     min="0"
                   />
+                  {form.fees && Number(form.fees) > 0 ? (
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Platform charges <strong className="text-indigo-600">8%</strong> · You receive{" "}
+                      <strong className="text-green-600">Rs.{(Number(form.fees) - Math.round(Number(form.fees) * 0.08)).toLocaleString()}</strong>{" "}
+                      per student/month
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      Platform charges <strong className="text-indigo-600">8%</strong> service fee on every payment
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
