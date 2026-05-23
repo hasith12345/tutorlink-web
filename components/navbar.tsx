@@ -17,6 +17,11 @@ export function Navbar() {
   const [activeRole, setActiveRole] = useState<'student' | 'tutor' | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
+  const [pushEnabled, setPushEnabled] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const stored = localStorage.getItem('pushNotificationsEnabled')
+    return stored === null ? true : stored === 'true'
+  })
   const router = useRouter()
   const pathname = usePathname()
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -40,14 +45,20 @@ export function Navbar() {
 
     loadUserData()
 
-    // Re-read user data when avatar or profile is updated
     const handleUserDataUpdate = () => loadUserData()
     window.addEventListener('userDataUpdated', handleUserDataUpdate)
     window.addEventListener('storage', handleUserDataUpdate)
 
+    const handlePushChange = () => {
+      const stored = localStorage.getItem('pushNotificationsEnabled')
+      setPushEnabled(stored === null ? true : stored === 'true')
+    }
+    window.addEventListener('pushNotificationsChanged', handlePushChange)
+
     return () => {
       window.removeEventListener('userDataUpdated', handleUserDataUpdate)
       window.removeEventListener('storage', handleUserDataUpdate)
+      window.removeEventListener('pushNotificationsChanged', handlePushChange)
     }
   }, [])
 
@@ -179,7 +190,7 @@ export function Navbar() {
                 )}
 
                 {/* Notifications */}
-                <div className="relative" ref={notificationsRef}>
+                {pushEnabled && <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={() => { setIsNotificationsOpen(!isNotificationsOpen); setIsProfileOpen(false) }}
                     className={`relative p-2 rounded-lg transition-colors ${
@@ -253,7 +264,7 @@ export function Navbar() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </div>}
 
                 {/* User Profile Dropdown */}
                 <div className="relative" ref={dropdownRef}>

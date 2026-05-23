@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ShieldCheck, Users, DollarSign, Bell, TrendingUp, Clock, Loader2, CreditCard, GraduationCap } from "lucide-react"
+import { ShieldCheck, Users, DollarSign, Bell, TrendingUp, Clock, CreditCard, GraduationCap } from "lucide-react"
 import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const colorMap: Record<string, string> = {
   amber: "bg-amber-50 text-amber-600",
@@ -101,7 +102,7 @@ export default function AdminOverviewPage() {
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${colorMap[color]}`}>
               <Icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            {loading ? <Skeleton className="h-7 w-16 mb-1" /> : <p className="text-2xl font-bold text-gray-900">{value}</p>}
             <p className="text-sm text-gray-500 mt-0.5">{label}</p>
           </div>
         ))}
@@ -116,8 +117,20 @@ export default function AdminOverviewPage() {
             <h2 className="font-semibold text-gray-800 text-sm">Recent Transactions</h2>
           </div>
           {loading ? (
-            <div className="flex items-center justify-center py-14">
-              <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+            <div className="divide-y divide-gray-50">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3">
+                  <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-3.5 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Skeleton className="h-3.5 w-16" />
+                    <Skeleton className="h-4 w-16 rounded-full" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : recentPayments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 text-center">
@@ -163,8 +176,14 @@ export default function AdminOverviewPage() {
             <h2 className="font-semibold text-gray-800 text-sm">Platform Summary</h2>
           </div>
           {loading ? (
-            <div className="flex items-center justify-center py-14">
-              <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+            <div className="p-4 space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-lg flex-shrink-0" />
+                  <Skeleton className="h-3 flex-1" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              ))}
             </div>
           ) : paymentSummary ? (
             <div className="p-4 space-y-3">

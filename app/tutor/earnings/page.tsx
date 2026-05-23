@@ -10,7 +10,7 @@ import {
   Receipt, Monitor, Building,
 } from "lucide-react"
 import { api } from "@/lib/api"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TutorEarningsPage() {
   const router = useRouter()
@@ -47,9 +47,46 @@ export default function TutorEarningsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <LoadingSpinner size="lg" />
-          </div>
+          <>
+            {/* Summary cards skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              {[0,1,2].map(i => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
+                  <Skeleton className="w-10 h-10 rounded-xl bg-gray-200" />
+                  <Skeleton className="h-7 w-28 bg-gray-200" />
+                  <Skeleton className="h-4 w-20 bg-gray-200" />
+                </div>
+              ))}
+            </div>
+
+            {/* Payment table skeleton */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <Skeleton className="h-5 w-36 bg-gray-200" />
+              </div>
+              <div className="divide-y divide-gray-50">
+                {[0,1,2,3,4,5].map(i => (
+                  <div key={i} className="flex items-center gap-4 px-6 py-4">
+                    <div className="flex items-center gap-2 w-36 flex-shrink-0">
+                      <Skeleton className="w-7 h-7 rounded-full bg-gray-200 flex-shrink-0" />
+                      <Skeleton className="h-4 w-24 bg-gray-200" />
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-32 bg-gray-200" />
+                      <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
+                    </div>
+                    <Skeleton className="h-3 w-28 bg-gray-200 hidden md:block" />
+                    <Skeleton className="h-4 w-20 bg-gray-200 ml-auto" />
+                    <div className="space-y-1 text-right flex-shrink-0">
+                      <Skeleton className="h-4 w-20 bg-gray-200" />
+                      <Skeleton className="h-3 w-8 bg-gray-200" />
+                    </div>
+                    <Skeleton className="h-3 w-20 bg-gray-200 hidden lg:block flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
             <p className="text-red-600 font-medium">{error}</p>

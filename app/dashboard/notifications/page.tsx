@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { ArrowLeft, Bell, CheckCheck, Trash2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useNotifications } from "@/hooks/use-notifications"
 import { format } from "date-fns"
 
@@ -46,9 +47,25 @@ export default function NotificationsPage() {
         {/* Notifications List */}
         <div className="space-y-4">
           {loading ? (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-              <p className="text-slate-400 text-sm">Loading…</p>
-            </div>
+            <>
+              {[0,1,2,3,4].map(i => (
+                <div key={i} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 mt-1" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-48 bg-gray-200" />
+                      <Skeleton className="h-3.5 w-full bg-gray-200" />
+                      <Skeleton className="h-3.5 w-3/4 bg-gray-200" />
+                      <Skeleton className="h-3 w-28 bg-gray-200 mt-1" />
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Skeleton className="h-4 w-16 bg-gray-200" />
+                      <Skeleton className="w-7 h-7 rounded-lg bg-gray-200" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
           ) : notifications.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
               <Bell className="w-12 h-12 text-slate-300 mx-auto mb-4" />

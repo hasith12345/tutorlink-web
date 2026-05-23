@@ -441,7 +441,12 @@ class ApiClient {
     })
   }
 
-  async getTutorSuggestions(query: string, limit = 10): Promise<{ success: boolean; suggestions: any[] }> {
+  async getTutorSuggestions(query: string, limit = 10): Promise<{
+    success: boolean
+    subjects: Array<{ type: 'subject'; value: string; displayText: string; count: number }>
+    tutors: Array<{ type: 'tutor'; id: string; name: string; subject: string | null; displayText: string; avatar: string | null }>
+    suggestions: any[]
+  }> {
     const queryParams = new URLSearchParams({ query, limit: limit.toString() })
     return this.request(`/tutors/suggestions?${queryParams.toString()}`, {
       method: 'GET',
@@ -506,6 +511,13 @@ class ApiClient {
     return this.request('/tutor/application/status', {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async recordTutorHeartbeat(): Promise<{ ok: boolean; lastOnlineAt: string; isAvailable: boolean }> {
+    return this.request('/tutor/heartbeat', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }
 
@@ -704,6 +716,13 @@ class ApiClient {
 
   async unbanUser(userId: string): Promise<{ message: string; user: any }> {
     return this.request(`/auth/admin/users/${userId}/unban`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async reactivateTutor(userId: string): Promise<{ message: string; tutor: any }> {
+    return this.request(`/auth/admin/users/${userId}/reactivate-tutor`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })

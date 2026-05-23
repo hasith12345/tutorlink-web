@@ -4,6 +4,7 @@ import { Bell, CheckCheck, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { api, type Notification } from "@/lib/api"
 import { format } from "date-fns"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -82,7 +83,20 @@ export default function AdminNotificationsPage() {
       {/* List */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         {loading ? (
-          <div className="py-14 text-center text-sm text-gray-400">Loading…</div>
+          <div className="divide-y divide-gray-50">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="px-5 py-4">
+                <div className="flex items-start gap-4">
+                  <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-72 max-w-full" />
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 text-center">
             <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">

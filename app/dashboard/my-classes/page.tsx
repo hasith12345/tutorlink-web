@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   GraduationCap, CalendarDays, Clock, Monitor, Building,
   ChevronRight, BookOpen, ArrowLeft, Video,
@@ -48,8 +48,33 @@ export default function MyClassesPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <LoadingSpinner size="lg" />
+          <div className="space-y-4">
+            {[0,1,2,3].map(i => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Skeleton className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-28 bg-gray-200" />
+                        <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
+                      </div>
+                      <Skeleton className="h-3 w-24 bg-gray-200" />
+                      <div className="flex gap-3">
+                        <Skeleton className="h-3 w-32 bg-gray-200" />
+                        <Skeleton className="h-3 w-24 bg-gray-200" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <Skeleton className="h-3 w-10 bg-gray-200" />
+                    <Skeleton className="h-4 w-16 bg-gray-200" />
+                    <Skeleton className="h-5 w-14 rounded-full bg-gray-200" />
+                    <Skeleton className="w-4 h-4 rounded bg-gray-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">

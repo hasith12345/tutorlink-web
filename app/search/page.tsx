@@ -30,13 +30,23 @@ interface TutorResult {
   lowestFee: number | null
 }
 
-interface Suggestion {
+interface SubjectSuggestion {
+  type: 'subject'
+  value: string
+  displayText: string
+  count: number
+}
+
+interface TutorSuggestion {
+  type: 'tutor'
   id: string
   name: string
-  subject: string
+  subject: string | null
   displayText: string
-  avatar: string
+  avatar: string | null
 }
+
+type Suggestion = SubjectSuggestion | TutorSuggestion
 
 const modeIcons = {
   online: Monitor,
@@ -115,31 +125,11 @@ export default function SearchPage() {
     suggestionDebounceRef.current = window.setTimeout(async () => {
       try {
         const response = await api.getTutorSuggestions(value, 6)
-
-        // Support multiple response shapes
-        let suggestionsList: any[] = []
-        if (!response) {
-          suggestionsList = []
-        } else if (Array.isArray(response)) {
-          suggestionsList = response
-        } else if (Array.isArray(response.suggestions)) {
-          suggestionsList = response.suggestions
-        } else if (Array.isArray(response.data)) {
-          suggestionsList = response.data
-        } else if (Array.isArray(response.results)) {
-          suggestionsList = response.results
-        }
-
-        const normalized = suggestionsList.map((s: any) => ({
-          id: s.id ?? s._id ?? `${s.name || ''}-${s.subject || ''}`,
-          name: s.name ?? s.displayName ?? '',
-          subject: s.subject ?? (Array.isArray(s.subjects) ? s.subjects[0] : '') ?? '',
-          displayText:
-            s.displayText ?? (s.name ? (s.subject ? `${s.name} — ${s.subject}` : s.name) : s.subject ?? ''),
-          avatar: s.avatar ?? s.image ?? '',
-        }))
-
-        setSuggestions(normalized)
+        const merged: Suggestion[] = [
+          ...(response.subjects || []),
+          ...(response.tutors || []),
+        ]
+        setSuggestions(merged)
       } catch (error) {
         console.error('Failed to fetch suggestions:', error)
         setSuggestions([])
@@ -150,8 +140,11 @@ export default function SearchPage() {
   }
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSubject(suggestion.displayText)
+    // For subjects, populate with the subject text; for tutors, use their name
+    setSubject(suggestion.type === 'subject' ? suggestion.value : suggestion.name)
     setShowSuggestions(false)
+    // Optionally auto-run the search
+    setTimeout(() => handleSearch(), 0)
   }
 
   const handleGetLocation = () => {
@@ -271,25 +264,63 @@ export default function SearchPage() {
                           <p className="text-sm text-gray-500 mt-2">Loading suggestions...</p>
                         </div>
                       ) : (
-                        suggestions.map((suggestion) => (
-                          <button
-                            key={suggestion.id}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            className="w-full px-4 py-3 text-left hover:bg-indigo-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0 group"
-                          >
-                            <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0">
-                              {suggestion.avatar ? (
-                                <img src={suggestion.avatar} alt={suggestion.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <User className="w-4 h-4 text-indigo-600" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{suggestion.displayText}</p>
-                            </div>
-                            <Search className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 transition-colors" />
-                          </button>
-                        ))
+                        <>
+                          {/* Subjects section */}
+                          {suggestions.some(s => s.type === 'subject') && (
+                            <>
+                              <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">Subjects</p>
+                              {suggestions.filter(s => s.type === 'subject').map((s) => {
+                                const sub = s as SubjectSuggestion
+                                return (
+                                  <button
+                                    key={`subject-${sub.value}`}
+                                    onClick={() => handleSuggestionClick(sub)}
+                                    className="w-full px-4 py-2.5 text-left hover:bg-indigo-50 transition-colors flex items-center gap-3 group"
+                                  >
+                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                      <BookOpen className="w-4 h-4 text-indigo-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-gray-900 truncate">{sub.displayText}</p>
+                                      <p className="text-[10px] text-gray-400">{sub.count} tutor{sub.count !== 1 ? 's' : ''}</p>
+                                    </div>
+                                    <Search className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 transition-colors" />
+                                  </button>
+                                )
+                              })}
+                            </>
+                          )}
+
+                          {/* Tutors section */}
+                          {suggestions.some(s => s.type === 'tutor') && (
+                            <>
+                              <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-100">Tutors</p>
+                              {suggestions.filter(s => s.type === 'tutor').map((s) => {
+                                const t = s as TutorSuggestion
+                                return (
+                                  <button
+                                    key={`tutor-${t.id}`}
+                                    onClick={() => handleSuggestionClick(t)}
+                                    className="w-full px-4 py-2.5 text-left hover:bg-indigo-50 transition-colors flex items-center gap-3 group"
+                                  >
+                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                                      {t.avatar ? (
+                                        <img src={t.avatar} alt={t.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <User className="w-4 h-4 text-indigo-600" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-gray-900 truncate">{t.name}</p>
+                                      {t.subject && <p className="text-[10px] text-gray-400">{t.subject}</p>}
+                                    </div>
+                                    <Search className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 transition-colors" />
+                                  </button>
+                                )
+                              })}
+                            </>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

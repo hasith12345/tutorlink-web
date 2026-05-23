@@ -7,7 +7,7 @@ import { TutorNavbar } from "@/components/tutor-navbar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Users,
   BookOpen,
@@ -62,6 +62,10 @@ export default function TutorDashboardPage() {
       setUser(userData)
       authStorage.setActiveRole("tutor")
 
+      // Heartbeat — records this dashboard visit as the tutor's last-online time
+      // Used by the daily availability cron to flip isAvailable for inactive tutors
+      api.recordTutorHeartbeat().catch(() => {})
+
       // Fetch current user with role flags and tutor status
       try {
         const [currentUserRes, statusRes, classesRes, earningsRes, studentsRes] = await Promise.all([
@@ -110,9 +114,80 @@ export default function TutorDashboardPage() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full min-h-[70vh]">
-            <LoadingSpinner size="lg" />
-          </div>
+          <>
+            {/* Stats pill bar skeleton */}
+            <div className="bg-white border border-gray-200 rounded-full shadow-sm flex flex-col sm:flex-row mb-8 overflow-hidden">
+              {[0,1,2,3].map((idx) => (
+                <div key={idx} className={`flex-1 flex items-center justify-between px-6 py-5 ${idx !== 0 ? "sm:border-l border-t sm:border-t-0 border-gray-200" : ""}`}>
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-24 bg-gray-200" />
+                    <Skeleton className="h-7 w-16 bg-gray-200" />
+                    <Skeleton className="h-3 w-20 bg-gray-200" />
+                  </div>
+                  <Skeleton className="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0" />
+                </div>
+              ))}
+            </div>
+
+            {/* Two-column grid skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* My Classes skeleton */}
+              <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-28 bg-gray-200" />
+                  <Skeleton className="h-4 w-16 bg-gray-200" />
+                </div>
+                {[0,1,2].map(i => (
+                  <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                    <Skeleton className="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32 bg-gray-200" />
+                      <Skeleton className="h-3 w-48 bg-gray-200" />
+                    </div>
+                    <Skeleton className="h-8 w-16 rounded-lg bg-gray-200 flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Right column skeleton */}
+              <div className="space-y-6">
+                {/* Quick Actions skeleton */}
+                <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+                  <Skeleton className="h-5 w-32 bg-gray-200" />
+                  <div className="grid grid-cols-2 gap-3">
+                    {[0,1,2,3].map(i => (
+                      <Skeleton key={i} className="h-20 rounded-xl bg-gray-200" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Earnings Overview skeleton */}
+                <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-36 bg-gray-200" />
+                    <Skeleton className="h-4 w-16 bg-gray-200" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Skeleton className="h-16 rounded-xl bg-gray-200" />
+                    <Skeleton className="h-16 rounded-xl bg-gray-200" />
+                  </div>
+                  {[0,1,2].map(i => (
+                    <div key={i} className="flex items-center gap-3 py-2 border-t border-gray-50">
+                      <Skeleton className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-3.5 w-28 bg-gray-200" />
+                        <Skeleton className="h-3 w-20 bg-gray-200" />
+                      </div>
+                      <div className="space-y-1 text-right flex-shrink-0">
+                        <Skeleton className="h-3.5 w-16 bg-gray-200" />
+                        <Skeleton className="h-3 w-10 bg-gray-200" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
         ) : (
           <>
         {/* NOT_SUBMITTED Banner - profile created but no details submitted */}

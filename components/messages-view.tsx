@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { api, type ConversationSummary, type ChatMessage } from "@/lib/api"
 import { useMessages } from "@/hooks/use-messages"
 import { MessageCircle, Send, ArrowLeft, Loader2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { format, isToday, isYesterday } from "date-fns"
 
 function Avatar({ name, avatar, size = "md" }: { name: string; avatar?: string | null; size?: "sm" | "md" }) {
@@ -148,8 +149,17 @@ export function MessagesView({ initialTutorId, role = "student" }: Props) {
         </div>
 
         {loadingConvs ? (
-          <div className="flex items-center justify-center flex-1">
-            <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+          <div className="flex-1 p-3 space-y-1">
+            {[0,1,2,3,4].map(i => (
+              <div key={i} className="flex items-center gap-3 px-3 py-3">
+                <Skeleton className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-3.5 w-28 bg-gray-200" />
+                  <Skeleton className="h-3 w-40 bg-gray-200" />
+                </div>
+                <Skeleton className="h-3 w-10 bg-gray-200 flex-shrink-0" />
+              </div>
+            ))}
           </div>
         ) : conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 text-center px-6">
@@ -255,8 +265,13 @@ export function MessagesView({ initialTutorId, role = "student" }: Props) {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-5 space-y-1.5 bg-gradient-to-b from-gray-50/50 to-gray-50">
               {loadingMsgs ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+                <div className="space-y-4 py-2">
+                  {[48, 64, 40, 72, 56].map((w, i) => (
+                    <div key={i} className={`flex items-end gap-2 ${i % 2 === 0 ? "" : "flex-row-reverse"}`}>
+                      <Skeleton className="w-7 h-7 rounded-full bg-gray-200 flex-shrink-0" />
+                      <Skeleton className={`h-9 rounded-2xl bg-gray-200`} style={{ width: `${w}%`, maxWidth: "75%" }} />
+                    </div>
+                  ))}
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">

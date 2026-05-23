@@ -7,6 +7,7 @@ import { TutorNavbar } from "@/components/tutor-navbar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   Plus, MapPin, CalendarDays, Clock, Users,
@@ -260,9 +261,34 @@ export default function TutorClassesPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <LoadingSpinner size="lg" />
-          </div>
+          <>
+            <div className="mb-4">
+              <Skeleton className="h-5 w-40 bg-gray-200" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[0,1,2,3,4,5].map(i => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1 pr-2">
+                      <Skeleton className="h-4 w-36 bg-gray-200" />
+                      <Skeleton className="h-3 w-full bg-gray-200" />
+                    </div>
+                    <Skeleton className="w-6 h-6 rounded bg-gray-200 flex-shrink-0" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-48 bg-gray-200" />
+                    <Skeleton className="h-3 w-32 bg-gray-200" />
+                    <Skeleton className="h-3 w-40 bg-gray-200" />
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <Skeleton className="h-4 w-20 bg-gray-200" />
+                    <Skeleton className="h-4 w-12 bg-gray-200" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <>
             {tutorStatus !== "APPROVED" && (

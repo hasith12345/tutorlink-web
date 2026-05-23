@@ -12,6 +12,11 @@ export default function SettingsPage() {
   const [pushNotifications, setPushNotifications] = useState(true)
   const [isOAuthUser, setIsOAuthUser] = useState(authStorage.getUser()?.isOAuthUser ?? false)
 
+  useEffect(() => {
+    const stored = localStorage.getItem('pushNotificationsEnabled')
+    if (stored !== null) setPushNotifications(stored === 'true')
+  }, [])
+
   // Fetch fresh profile from server so isOAuthUser is always accurate
   useEffect(() => {
     api.getProfile().then((profile: any) => {
@@ -46,32 +51,18 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-slate-100">
-              <div>
-                <p className="font-medium text-slate-800">Email Notifications</p>
-                <p className="text-sm text-slate-500">Receive notifications via email</p>
-              </div>
-              <button
-                onClick={() => setEmailNotifications(!emailNotifications)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  emailNotifications ? "bg-indigo-600" : "bg-slate-300"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    emailNotifications ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-
             <div className="flex items-center justify-between py-3">
               <div>
                 <p className="font-medium text-slate-800">Push Notifications</p>
                 <p className="text-sm text-slate-500">Receive push notifications</p>
               </div>
               <button
-                onClick={() => setPushNotifications(!pushNotifications)}
+                onClick={() => {
+                  const next = !pushNotifications
+                  setPushNotifications(next)
+                  localStorage.setItem('pushNotificationsEnabled', String(next))
+                  window.dispatchEvent(new Event('pushNotificationsChanged'))
+                }}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   pushNotifications ? "bg-indigo-600" : "bg-slate-300"
                 }`}
@@ -87,7 +78,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Support */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-6">
           <div className="flex items-center space-x-3 mb-6">
             <HeadphonesIcon className="w-6 h-6 text-indigo-600" />
             <h2 className="text-xl font-bold text-slate-800">Support</h2>
@@ -123,16 +114,6 @@ export default function SettingsPage() {
                   ? "Create a password so you can also log in with email"
                   : "Update your account password"}
               </p>
-            </button>
-
-            <button className="w-full text-left p-4 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all">
-              <p className="font-medium text-slate-800">Two-Factor Authentication</p>
-              <p className="text-sm text-slate-500 mt-1">Add an extra layer of security</p>
-            </button>
-
-            <button className="w-full text-left p-4 rounded-lg border border-red-200 hover:border-red-300 hover:bg-red-50 transition-all">
-              <p className="font-medium text-red-600">Delete Account</p>
-              <p className="text-sm text-slate-500 mt-1">Permanently delete your account</p>
             </button>
           </div>
         </div>

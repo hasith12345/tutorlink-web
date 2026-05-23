@@ -7,6 +7,7 @@ import {
   Users, CalendarDays, Clock, AlertTriangle, Pause, Play,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type AdminClass = Awaited<ReturnType<typeof api.getAdminClasses>>["classes"][number]
 
@@ -116,7 +117,7 @@ export default function AdminClassesPage() {
             <div className={`w-10 h-10 bg-${color}-50 rounded-lg flex items-center justify-center mb-3`}>
               <Icon className={`w-5 h-5 text-${color}-600`} />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{loading ? "—" : value}</p>
+            {loading ? <Skeleton className="h-7 w-16 mb-1" /> : <p className="text-2xl font-bold text-gray-900">{value}</p>}
             <p className="text-sm text-gray-500 mt-0.5">{label}</p>
           </div>
         ))}
@@ -155,8 +156,33 @@ export default function AdminClassesPage() {
 
         {/* List */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          <div className="divide-y divide-gray-50">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-16 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                </div>
+                <div className="hidden md:flex gap-3">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-12" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-7 w-14 rounded-lg" />
+                  <Skeleton className="h-7 w-14 rounded-lg" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
