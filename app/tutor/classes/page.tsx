@@ -11,7 +11,7 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   Plus, MapPin, CalendarDays, Clock, Users,
   Video, Building, MoreVertical, Edit, Trash2, Eye,
-  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, ArrowLeft,
+  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, ArrowLeft, AlertTriangle,
 } from "lucide-react"
 import FolderManager from "@/components/folder-manager"
 
@@ -25,6 +25,7 @@ export default function TutorClassesPage() {
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; subject: string } | null>(null)
+  const [deleteError, setDeleteError] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Edit modal
@@ -67,12 +68,13 @@ export default function TutorClassesPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return
     setIsDeleting(true)
+    setDeleteError("")
     try {
       await api.deleteClass(deleteTarget.id)
       setClasses(prev => prev.filter(c => c.id !== deleteTarget.id))
       setDeleteTarget(null)
     } catch (err: any) {
-      alert(err.message || "Failed to delete class")
+      setDeleteError(err.message || "Failed to delete class")
     } finally {
       setIsDeleting(false)
     }
@@ -297,30 +299,52 @@ export default function TutorClassesPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
+            <div className={`w-12 h-12 ${deleteError ? "bg-amber-100" : "bg-red-100"} rounded-full flex items-center justify-center mx-auto mb-4`}>
+              {deleteError ? (
+                <AlertTriangle className="w-6 h-6 text-amber-600" />
+              ) : (
+                <Trash2 className="w-6 h-6 text-red-600" />
+              )}
             </div>
-            <h3 className="text-lg font-bold text-gray-900 text-center">Delete Class?</h3>
-            <p className="text-sm text-gray-500 text-center mt-2">
-              <span className="font-medium text-gray-700">"{deleteTarget.subject}"</span> will be permanently deleted. This cannot be undone.
-            </p>
+            <h3 className="text-lg font-bold text-gray-900 text-center">
+              {deleteError ? "Can't delete this class" : "Delete Class?"}
+            </h3>
+            {deleteError ? (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-800 leading-relaxed">{deleteError}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 text-center mt-2">
+                <span className="font-medium text-gray-700">"{deleteTarget.subject}"</span> will be permanently deleted. This cannot be undone.
+              </p>
+            )}
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setDeleteTarget(null)}
+                onClick={() => { setDeleteTarget(null); setDeleteError("") }}
                 className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {deleteError ? "Close" : "Cancel"}
               </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isDeleting ? <LoadingSpinner size="sm" /> : <Trash2 className="w-4 h-4" />}
-                Delete
-              </button>
+              {deleteError ? (
+                <a
+                  href="/contact-us"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Contact Admin
+                </a>
+              ) : (
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? <LoadingSpinner size="sm" /> : <Trash2 className="w-4 h-4" />}
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>
