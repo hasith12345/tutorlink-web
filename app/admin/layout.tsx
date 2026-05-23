@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { api } from "@/lib/api"
@@ -20,6 +21,7 @@ const navItems = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Tutor Approvals", href: "/admin/tutor-approvals", icon: ShieldCheck },
   { label: "Accounts", href: "/admin/accounts", icon: Users },
+  { label: "Classes", href: "/admin/classes", icon: BookOpen },
   { label: "Payments", href: "/admin/payments", icon: DollarSign },
   { label: "Notifications", href: "/admin/notifications", icon: Bell },
 ]

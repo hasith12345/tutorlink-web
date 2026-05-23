@@ -914,6 +914,56 @@ class ApiClient {
     })
   }
 
+  // Admin classes management
+  async getAdminClasses(): Promise<{
+    classes: Array<{
+      id: string
+      subject: string
+      description?: string | null
+      mode: string
+      venue?: string | null
+      schedule: string[]
+      time: string
+      duration: string
+      fees: number
+      maxStudents: number
+      enrolledCount: number
+      paidEnrollments: number
+      totalEnrollments: number
+      status: string
+      createdAt: string
+      tutorId: string
+      tutorName: string
+      tutorEmail: string
+      tutorAvatar?: string | null
+    }>
+  }> {
+    return this.request('/tutor/admin/classes', {
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async forceDeleteClassAdmin(classId: string): Promise<{ message: string }> {
+    return this.request(`/tutor/admin/classes/${classId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async holdClassAdmin(classId: string): Promise<{ message: string }> {
+    return this.request(`/tutor/admin/classes/${classId}/hold`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async unholdClassAdmin(classId: string): Promise<{ message: string }> {
+    return this.request(`/tutor/admin/classes/${classId}/unhold`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
   async getAdminPayments(): Promise<{
     summary: {
       totalRevenue: number
