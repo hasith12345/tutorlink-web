@@ -38,9 +38,11 @@ export interface ConversationDetail {
 
 export interface Review {
   id: string
-  tutorId: string
-  studentId: string
+  tutorId?: string
+  studentId?: string
   enrollmentId: string
+  classId?: string
+  classSubject?: string
   rating: number
   comment?: string | null
   createdAt: string
@@ -803,6 +805,12 @@ class ApiClient {
 
   async getTutorReviews(tutorId: string): Promise<{ reviews: Review[] }> {
     return this.request(`/reviews/tutor/${tutorId}`)
+  }
+
+  async getClassReviews(classId: string): Promise<{ reviews: Review[]; count: number; averageRating: number }> {
+    return this.request(`/reviews/class/${classId}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
   }
 
   async getMyReview(enrollmentId: string): Promise<{ review: Review | null }> {

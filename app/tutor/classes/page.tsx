@@ -11,7 +11,7 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   Plus, MapPin, CalendarDays, Clock, Users,
   Video, Building, MoreVertical, Edit, Trash2, Eye,
-  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, ArrowLeft, AlertTriangle,
+  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, ArrowLeft, AlertTriangle, Star,
 } from "lucide-react"
 import FolderManager from "@/components/folder-manager"
 
@@ -37,6 +37,9 @@ export default function TutorClassesPage() {
 
   // Students modal
   const [studentsTarget, setStudentsTarget] = useState<any | null>(null)
+  const [reviewsTarget, setReviewsTarget] = useState<any | null>(null)
+  const [reviewsData, setReviewsData] = useState<{ reviews: any[]; count: number; averageRating: number } | null>(null)
+  const [loadingReviews, setLoadingReviews] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -123,6 +126,21 @@ export default function TutorClassesPage() {
 
   const openStudents = (cls: any) => { setStudentsTarget(cls); setActionMenuOpen(null) }
 
+  const openReviews = async (cls: any) => {
+    setActionMenuOpen(null)
+    setReviewsTarget(cls)
+    setReviewsData(null)
+    setLoadingReviews(true)
+    try {
+      const res = await api.getClassReviews(cls.id)
+      setReviewsData(res)
+    } catch {
+      setReviewsData({ reviews: [], count: 0, averageRating: 0 })
+    } finally {
+      setLoadingReviews(false)
+    }
+  }
+
   const activeClasses = classes.filter(c => c.status === "ACTIVE")
   const cancelledClasses = classes.filter(c => c.status === "CANCELLED")
 
@@ -154,6 +172,12 @@ export default function TutorClassesPage() {
                   className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5 text-blue-500" /> View Students
+                </button>
+                <button
+                  onClick={() => openReviews(cls)}
+                  className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Star className="w-3.5 h-3.5 text-amber-500" /> View Reviews
                 </button>
                 <div className="border-t border-gray-100 my-1" />
                 <button
@@ -505,6 +529,88 @@ export default function TutorClassesPage() {
                   </div>
                   <p className="text-sm font-medium text-gray-700">No students enrolled yet</p>
                   <p className="text-xs text-gray-400 mt-1">0 / {studentsTarget.maxStudents} spots filled</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reviews Modal */}
+      {reviewsTarget && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                  <h3 className="text-lg font-bold text-gray-900 truncate">Reviews for {reviewsTarget.subject}</h3>
+                </div>
+                {reviewsData && reviewsData.count > 0 ? (
+                  <p className="text-xs text-gray-500">
+                    <span className="font-semibold text-gray-700">{reviewsData.averageRating}</span> average · {reviewsData.count} review{reviewsData.count !== 1 ? "s" : ""}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400">Student feedback for this class only</p>
+                )}
+              </div>
+              <button
+                onClick={() => { setReviewsTarget(null); setReviewsData(null) }}
+                className="p-1.5 hover:bg-gray-100 rounded-lg flex-shrink-0"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="overflow-y-auto px-6 py-4 flex-1">
+              {loadingReviews ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner size="md" />
+                </div>
+              ) : reviewsData && reviewsData.reviews.length > 0 ? (
+                <div className="space-y-3">
+                  {reviewsData.reviews.map((r) => {
+                    const initials = r.studentName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                    return (
+                      <div key={r.id} className="bg-gray-50/60 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                          {r.studentAvatar ? (
+                            <img src={r.studentAvatar} alt={r.studentName} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                              {initials}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <p className="text-sm font-semibold text-gray-900 truncate">{r.studentName}</p>
+                              <p className="text-[10px] text-gray-400 flex-shrink-0">
+                                {new Date(r.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-0.5 mb-1">
+                              {[1,2,3,4,5].map(i => (
+                                <Star key={i} className={`w-3.5 h-3.5 ${i <= r.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
+                              ))}
+                            </div>
+                            {r.comment && (
+                              <p className="text-sm text-gray-600 mt-1">{r.comment}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Star className="w-7 h-7 text-gray-300" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">No reviews yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Reviews from students enrolled in this class will appear here</p>
                 </div>
               )}
             </div>

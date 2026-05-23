@@ -488,7 +488,7 @@ export default function ClassDetailPage() {
                   ) : (
                     <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
                       <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      Review submitted — thank you!
+                      Review submitted - thank you!
                     </div>
                   )}
                 </div>

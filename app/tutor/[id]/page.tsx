@@ -334,10 +334,17 @@ export default function TutorProfilePage() {
                             {new Date(review.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
                           </p>
                         </div>
-                        <div className="flex items-center gap-0.5 mb-2">
-                          {[1,2,3,4,5].map(i => (
-                            <Star key={i} className={`w-3.5 h-3.5 ${i <= review.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
-                          ))}
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <div className="flex items-center gap-0.5">
+                            {[1,2,3,4,5].map(i => (
+                              <Star key={i} className={`w-3.5 h-3.5 ${i <= review.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
+                            ))}
+                          </div>
+                          {review.classSubject && (
+                            <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200">
+                              {review.classSubject}
+                            </Badge>
+                          )}
                         </div>
                         {review.comment && (
                           <p className="text-sm text-gray-600">{review.comment}</p>
