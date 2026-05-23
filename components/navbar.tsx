@@ -5,8 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, MessageSquare, Calendar, DollarSign, Star, CheckCheck, User, ArrowLeftRight } from "lucide-react"
+import { Menu, X, Bell, Settings, ChevronDown, LogOut, Search, GraduationCap, UserSearch, CheckCheck, User, ArrowLeftRight, MessageCircle as MessageCircleIcon } from "lucide-react"
 import { authStorage } from "@/lib/api"
+import { useNotifications } from "@/hooks/use-notifications"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,12 +16,7 @@ export function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [activeRole, setActiveRole] = useState<'student' | 'tutor' | null>(null)
   const [scrolled, setScrolled] = useState(false)
-  const [notifications, setNotifications] = useState([
-    { id: '1', type: 'message', title: 'New Message', message: 'Sarah Johnson sent you a message about Math tutoring', time: '5 minutes ago', read: false, icon: <MessageSquare className="w-4 h-4 text-blue-500" /> },
-    { id: '2', type: 'booking', title: 'Session Booked', message: 'New tutoring session scheduled for tomorrow at 3:00 PM', time: '2 hours ago', read: false, icon: <Calendar className="w-4 h-4 text-green-500" /> },
-    { id: '3', type: 'payment', title: 'Payment Received', message: 'You received $50 for Physics tutoring session', time: '1 day ago', read: true, icon: <DollarSign className="w-4 h-4 text-emerald-500" /> },
-    { id: '4', type: 'review', title: 'New Review', message: 'Alex Smith left you a 5-star review', time: '2 days ago', read: true, icon: <Star className="w-4 h-4 text-amber-500" /> },
-  ])
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
   const router = useRouter()
   const pathname = usePathname()
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -74,10 +70,6 @@ export function Navbar() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const unreadCount = notifications.filter(n => !n.read).length
-
-  const markAllAsRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })))
 
   const handleLogout = () => {
     authStorage.clear()
@@ -224,27 +216,31 @@ export function Navbar() {
 
                     {/* Scrollable list */}
                     <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
-                      {notifications.map(notif => (
-                        <button
-                          key={notif.id}
-                          onClick={() => { setIsNotificationsOpen(false); router.push('/dashboard/notifications') }}
-                          className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                            !notif.read ? 'bg-indigo-50/50' : ''
-                          }`}
-                        >
-                          <div className="mt-0.5 flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                            {notif.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-xs font-semibold text-gray-800 truncate">{notif.title}</p>
-                              {!notif.read && <span className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0" />}
+                      {notifications.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-6">No notifications yet</p>
+                      ) : (
+                        notifications.slice(0, 8).map(notif => (
+                          <button
+                            key={notif.id}
+                            onClick={() => { markAsRead(notif.id); setIsNotificationsOpen(false); router.push('/dashboard/notifications') }}
+                            className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                              !notif.read ? 'bg-indigo-50/50' : ''
+                            }`}
+                          >
+                            <div className="mt-0.5 flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                              <Bell className="w-4 h-4 text-indigo-500" />
                             </div>
-                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                            <p className="text-[10px] text-gray-400 mt-1">{notif.time}</p>
-                          </div>
-                        </button>
-                      ))}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-semibold text-gray-800 truncate">{notif.title}</p>
+                                {!notif.read && <span className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0" />}
+                              </div>
+                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notif.message}</p>
+                              <p className="text-[10px] text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                            </div>
+                          </button>
+                        ))
+                      )}
                     </div>
 
                     {/* Footer */}
@@ -311,6 +307,30 @@ export function Navbar() {
                           <User className="w-4 h-4 text-gray-400" />
                           View Profile
                         </button>
+                        {activeRole === 'student' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setIsProfileOpen(false)
+                                router.push('/dashboard/my-classes')
+                              }}
+                              className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <GraduationCap className="w-4 h-4 text-gray-400" />
+                              My Classes
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsProfileOpen(false)
+                                router.push('/dashboard/messages')
+                              }}
+                              className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <MessageCircleIcon className="w-4 h-4 text-gray-400" />
+                              Messages
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => {
                             setIsProfileOpen(false)

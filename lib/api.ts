@@ -1,6 +1,77 @@
 // API configuration and utilities
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'
 
+export interface Notification {
+  id: string
+  userId: string
+  type: string
+  title: string
+  message: string
+  read: boolean
+  createdAt: string
+}
+
+export interface ChatMessage {
+  id: string
+  conversationId: string
+  content: string
+  senderId: string
+  senderName: string
+  read: boolean
+  createdAt: string
+  isMine: boolean
+}
+
+export interface ConversationSummary {
+  id: string
+  otherParty: { id: string; name: string; avatar: string | null; role: 'student' | 'tutor' }
+  lastMessage: ChatMessage | null
+  unreadCount: number
+  updatedAt: string
+}
+
+export interface ConversationDetail {
+  id: string
+  otherParty: { id: string; name: string; avatar: string | null; role: 'student' | 'tutor' }
+  messages: ChatMessage[]
+}
+
+export interface Review {
+  id: string
+  tutorId: string
+  studentId: string
+  enrollmentId: string
+  rating: number
+  comment?: string | null
+  createdAt: string
+  studentName: string
+  studentAvatar?: string | null
+}
+
+export interface ClassMaterial {
+  id: string
+  folderId: string
+  name: string
+  description?: string | null
+  url: string
+  publicId: string
+  resourceType: string
+  mimeType: string
+  sizeBytes?: number | null
+  isPublished: boolean
+  createdAt: string
+}
+
+export interface ClassFolder {
+  id: string
+  classId: string
+  name: string
+  order: number
+  createdAt: string
+  updatedAt: string
+  materials: ClassMaterial[]
+}
+
 export interface SignupData {
   fullName: string
   email: string
@@ -517,6 +588,76 @@ class ApiClient {
     })
   }
 
+  // ✅ Class folder & material endpoints
+  async getClassFolders(classId: string): Promise<{ folders: ClassFolder[]; isTutorOwner: boolean }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async createClassFolder(classId: string, name: string): Promise<{ folder: ClassFolder }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ name }),
+    })
+  }
+
+  async updateClassFolder(classId: string, folderId: string, data: { name?: string; order?: number }): Promise<{ folder: ClassFolder }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders/${folderId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteClassFolder(classId: string, folderId: string): Promise<{ message: string }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/folders/${folderId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async updateClassMaterial(classId: string, materialId: string, data: { isPublished?: boolean; description?: string }): Promise<{ material: ClassMaterial }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/materials/${materialId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteClassMaterial(classId: string, materialId: string): Promise<{ message: string }> {
+    const token = authStorage.getToken()
+    return this.request(`/tutor/classes/${classId}/materials/${materialId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async uploadClassMaterial(folderId: string, file: File, description?: string): Promise<{ material: ClassMaterial }> {
+    const token = authStorage.getToken()
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folderId', folderId)
+    if (description) formData.append('description', description)
+    const response = await fetch(`${API_BASE_URL}/upload/class-material`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Upload failed' }))
+      throw new Error(err.message || 'Upload failed')
+    }
+    return response.json()
+  }
+
   // ✅ Admin endpoints
   async getAdminApplications(status?: string): Promise<{ applications: any[] }> {
     const query = status ? `?status=${status}` : ''
@@ -563,6 +704,330 @@ class ApiClient {
     return this.request(`/auth/admin/users/${userId}/unban`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async createPaymentIntent(classId: string): Promise<{
+    clientSecret: string
+    paymentIntentId: string
+    classDetails: {
+      subject: string
+      description?: string
+      fees: number
+      schedule: string[]
+      time: string
+      duration: string
+      mode: string
+      tutorName: string
+      maxStudents: number
+      enrolledCount: number
+    }
+  }> {
+    return this.request('/payments/create-intent', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      body: JSON.stringify({ classId }),
+    })
+  }
+
+  async confirmPayment(paymentIntentId: string, classId: string): Promise<{
+    enrollmentId: string
+    tutorAmount: number
+    platformAmount: number
+    totalAmount: number
+  }> {
+    return this.request('/payments/confirm', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      body: JSON.stringify({ paymentIntentId, classId }),
+    })
+  }
+
+  async getTutorEarnings(): Promise<{
+    summary: { totalEarned: number; thisMonth: number; count: number }
+    payments: Array<{
+      id: string
+      totalAmount: number
+      tutorAmount: number
+      platformAmount: number
+      status: string
+      paidAt: string | null
+      createdAt: string
+      studentName: string
+      className: string
+      classSchedule: string[]
+      classMode: string
+    }>
+  }> {
+    return this.request('/payments/tutor/earnings', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getTutorStudents(): Promise<{
+    students: Array<{
+      id: string
+      fullName: string
+      email: string
+      avatar: string | null
+      enrolledAt: string
+      enrolledClasses: Array<{
+        enrollmentId: string
+        classId: string
+        subject: string
+        description?: string | null
+        schedule: string[]
+        mode: string
+        fees: number
+        time: string
+        enrolledAt: string
+        payment: { totalAmount: number; status: string; paidAt: string | null } | null
+      }>
+    }>
+    totalStudents: number
+    totalEnrollments: number
+  }> {
+    return this.request('/payments/tutor/students', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // ✅ Review endpoints
+  async submitReview(data: { enrollmentId: string; rating: number; comment?: string }): Promise<{ review: Review }> {
+    return this.request('/reviews', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getTutorReviews(tutorId: string): Promise<{ reviews: Review[] }> {
+    return this.request(`/reviews/tutor/${tutorId}`)
+  }
+
+  async getMyReview(enrollmentId: string): Promise<{ review: Review | null }> {
+    return this.request(`/reviews/my-review/${enrollmentId}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async deleteReview(reviewId: string): Promise<{ message: string }> {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getStudentEnrollments(): Promise<{
+    enrollments: Array<{
+      enrollmentId: string
+      enrolledAt: string
+      status: string
+      class: {
+        id: string
+        subject: string
+        description?: string
+        mode: string
+        schedule: string[]
+        time: string
+        duration: string
+        fees: number
+        venue?: string
+        meetingLink?: string | null
+        tutorId: string
+        tutorName: string
+        tutorAvatar?: string
+      }
+      payment: { totalAmount: number; status: string; paidAt: string | null } | null
+    }>
+  }> {
+    return this.request('/payments/student/enrollments', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // ✅ Notification endpoints
+  async getNotifications(): Promise<{ notifications: Notification[] }> {
+    return this.request('/notifications', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async markAsRead(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async markAllAsRead(): Promise<{ message: string }> {
+    return this.request('/notifications/read-all', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async deleteNotification(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getUnreadCount(): Promise<{ count: number }> {
+    return this.request('/notifications/unread-count', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // Admin notification endpoints
+  async getAdminNotifications(): Promise<{ notifications: Notification[] }> {
+    return this.request('/notifications/admin', {
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async getAdminUnreadCount(): Promise<{ count: number }> {
+    return this.request('/notifications/admin/unread-count', {
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async markAdminAsRead(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/admin/${id}/read`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async markAllAdminAsRead(): Promise<{ message: string }> {
+    return this.request('/notifications/admin/read-all', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async deleteAdminNotification(id: string): Promise<{ message: string }> {
+    return this.request(`/notifications/admin/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  // Admin classes management
+  async getAdminClasses(): Promise<{
+    classes: Array<{
+      id: string
+      subject: string
+      description?: string | null
+      mode: string
+      venue?: string | null
+      schedule: string[]
+      time: string
+      duration: string
+      fees: number
+      maxStudents: number
+      enrolledCount: number
+      paidEnrollments: number
+      totalEnrollments: number
+      status: string
+      createdAt: string
+      tutorId: string
+      tutorName: string
+      tutorEmail: string
+      tutorAvatar?: string | null
+    }>
+  }> {
+    return this.request('/tutor/admin/classes', {
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async forceDeleteClassAdmin(classId: string): Promise<{ message: string }> {
+    return this.request(`/tutor/admin/classes/${classId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async holdClassAdmin(classId: string): Promise<{ message: string }> {
+    return this.request(`/tutor/admin/classes/${classId}/hold`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async unholdClassAdmin(classId: string): Promise<{ message: string }> {
+    return this.request(`/tutor/admin/classes/${classId}/unhold`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
+  async getAdminPayments(): Promise<{
+    summary: {
+      totalRevenue: number
+      totalPlatform: number
+      totalTutor: number
+      thisMonth: number
+      count: number
+    }
+    payments: Array<{
+      id: string
+      stripePaymentId: string
+      totalAmount: number
+      tutorAmount: number
+      platformAmount: number
+      currency: string
+      status: string
+      paidAt: string | null
+      createdAt: string
+      studentName: string
+      studentEmail: string
+      tutorName: string
+      className: string
+      classMode: string
+    }>
+  }> {
+    return this.request('/payments/admin', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  // Messaging endpoints
+  async getConversations(role?: 'student' | 'tutor'): Promise<{ conversations: ConversationSummary[] }> {
+    const query = role ? `?role=${role}` : ''
+    return this.request(`/messages/conversations${query}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async createOrGetConversation(tutorId: string): Promise<{ conversation: ConversationSummary }> {
+    return this.request('/messages/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ tutorId }),
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async getConversationMessages(conversationId: string): Promise<{ conversation: ConversationDetail }> {
+    return this.request(`/messages/conversations/${conversationId}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async sendMessage(conversationId: string, content: string): Promise<{ message: ChatMessage }> {
+    return this.request(`/messages/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async markConversationRead(conversationId: string): Promise<{ message: string }> {
+    return this.request(`/messages/conversations/${conversationId}/read`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }
 }

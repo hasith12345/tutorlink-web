@@ -1,90 +1,143 @@
 "use client"
 
-import { Bell, Send, Users, Megaphone } from "lucide-react"
-import { useState } from "react"
+import { Bell, CheckCheck, Trash2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { api, type Notification } from "@/lib/api"
+import { format } from "date-fns"
 
-export default function NotificationsPage() {
-  const [message, setMessage] = useState("")
-  const [target, setTarget] = useState("all")
+export default function AdminNotificationsPage() {
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchNotifications = async () => {
+    try {
+      const { notifications: list } = await api.getAdminNotifications()
+      setNotifications(list)
+    } catch {
+      setNotifications([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchNotifications()
+    const interval = setInterval(fetchNotifications, 15000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.markAllAdminAsRead()
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    } catch {}
+  }
+
+  const handleMarkRead = async (id: string) => {
+    try {
+      await api.markAdminAsRead(id)
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    } catch {}
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await api.deleteAdminNotification(id)
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
+    } catch {}
+  }
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+      {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <Bell className="w-5 h-5 text-purple-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-            <p className="text-gray-500 text-sm">Send platform-wide announcements and notifications</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Compose */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
-        <div className="flex items-center gap-2 mb-5">
-          <Megaphone className="w-4 h-4 text-purple-500" />
-          <h2 className="font-semibold text-gray-800">Send Announcement</h2>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
-            <div className="flex gap-3">
-              {[
-                { value: "all", label: "All Users", icon: Users },
-                { value: "students", label: "Students", icon: Users },
-                { value: "tutors", label: "Tutors", icon: Users },
-              ].map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setTarget(value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                    target === value
-                      ? "bg-purple-600 text-white border-purple-600"
-                      : "border-gray-200 text-gray-600 hover:border-purple-300"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Bell className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+              <p className="text-gray-500 text-sm">
+                {unreadCount > 0
+                  ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
+                  : "All caught up"}
+              </p>
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={4}
-              placeholder="Write your announcement here..."
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
-            />
-          </div>
-
-          <button
-            disabled={!message.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send className="w-4 h-4" />
-            Send Notification
-          </button>
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 font-medium"
+            >
+              <CheckCheck className="w-4 h-4" />
+              Mark all as read
+            </button>
+          )}
         </div>
       </div>
 
-      {/* History */}
+      {/* List */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-800 text-sm">Notification History</h2>
-        </div>
-        <div className="flex flex-col items-center justify-center py-14 text-center">
-          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-            <Bell className="w-7 h-7 text-gray-400" />
+        {loading ? (
+          <div className="py-14 text-center text-sm text-gray-400">Loading…</div>
+        ) : notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-14 text-center">
+            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+              <Bell className="w-7 h-7 text-gray-400" />
+            </div>
+            <p className="font-medium text-gray-700">No notifications yet</p>
+            <p className="text-sm text-gray-400 mt-1">Platform events will appear here</p>
           </div>
-          <p className="font-medium text-gray-700">No notifications sent yet</p>
-          <p className="text-sm text-gray-400 mt-1">Sent announcements will appear here</p>
-        </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {notifications.map((n) => (
+              <div
+                key={n.id}
+                className={`px-5 py-4 transition-colors ${!n.read ? "bg-purple-50/40" : ""}`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Bell className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className={`text-sm font-semibold ${!n.read ? "text-gray-900" : "text-gray-700"}`}>
+                          {n.title}
+                        </p>
+                        <p className={`text-sm mt-0.5 ${!n.read ? "text-gray-700" : "text-gray-500"}`}>
+                          {n.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1.5">
+                          {format(new Date(n.createdAt), "MMM d, yyyy · h:mm a")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {!n.read && (
+                          <button
+                            onClick={() => handleMarkRead(n.id)}
+                            className="text-xs text-purple-600 hover:text-purple-700 font-medium whitespace-nowrap"
+                          >
+                            Mark read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(n.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

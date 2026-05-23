@@ -128,12 +128,12 @@ export default function BecomeTutorPage() {
                 Trusted by tutors across Sri Lanka
               </Badge>
 
-              <h1 className="text-4xl md:text-5xl text-black lg:text-6xl font-bold leading-tight">
+              <h1 className="text-4xl md:text-5xl text-black lg:text-6xl font-black leading-tight">
                 Earn by teaching students across{" "}<br />
                 <span className="text-indigo-500">Sri Lanka</span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-gray-500 max-w-2xl">
+              <p className="text-xl md:text-2xl text-gray-500 max-w-2xl" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
                 Teach OL, AL, university subjects, or skills online from home.
               </p>
 
@@ -180,11 +180,11 @@ export default function BecomeTutorPage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16" data-aos="fade-up">
-            <p className="text-gray-600 text-sm font-medium mb-2">Simple Process</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <p className="text-gray-500 text-sm mb-2" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}>Simple Process</p>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
               How It Works
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-500" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
               Start teaching in 3 easy steps
             </p>
           </div>
@@ -201,10 +201,10 @@ export default function BecomeTutorPage() {
                   <div className="relative z-10 w-[100px] h-[100px] bg-blue-500 rounded-2xl flex items-center justify-center mb-6">
                     <span className="text-white text-5xl font-bold">1</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-3xl font-black text-gray-900 mb-2">
                     Sign up
                   </h3>
-                  <p className="text-gray-600 text-base">
+                  <p className="text-gray-500 text-base" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
                     to create your tutor profile
                   </p>
                 </div>
@@ -214,10 +214,10 @@ export default function BecomeTutorPage() {
                   <div className="relative z-10 w-[100px] h-[100px] bg-blue-200 rounded-2xl flex items-center justify-center mb-6">
                     <span className="text-gray-900 text-5xl font-bold">2</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-3xl font-black text-gray-900 mb-2">
                     Get approved
                   </h3>
-                  <p className="text-gray-600 text-base">
+                  <p className="text-gray-500 text-base" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
                     by our team in 5 business days
                   </p>
                 </div>
@@ -227,10 +227,10 @@ export default function BecomeTutorPage() {
                   <div className="relative z-10 w-[100px] h-[100px] bg-blue-200 rounded-2xl flex items-center justify-center mb-6">
                     <span className="text-gray-900 text-5xl font-bold">3</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-3xl font-black text-gray-900 mb-2">
                     Start earning
                   </h3>
-                  <p className="text-gray-600 text-base">
+                  <p className="text-gray-500 text-base" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
                     by teaching students all over the world!
                   </p>
                 </div>
@@ -255,10 +255,10 @@ export default function BecomeTutorPage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
               Benefits of Teaching on TutorLink
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-500 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
               Join hundreds of tutors earning from home
             </p>
           </div>
@@ -289,10 +289,10 @@ export default function BecomeTutorPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Features List */}
             <div data-aos="fade-right">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6">
                 Why tutors love TutorLink
               </h2>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl text-gray-500 mb-8" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
                 We provide all the tools and support you need to succeed
               </p>
 
@@ -359,10 +359,11 @@ export default function BecomeTutorPage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <p className="text-sm text-gray-400 mb-2" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}>Testimonials</p>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
               Hear from our tutors
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-500 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
               Real stories from real tutors across Sri Lanka
             </p>
           </div>
@@ -377,7 +378,7 @@ export default function BecomeTutorPage() {
                     ))}
                   </div>
 
-                  <p className="text-gray-700 mb-6 italic">
+                  <p className="text-gray-700 mb-6 italic" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
                     "{testimonial.quote}"
                   </p>
 
@@ -403,10 +404,11 @@ export default function BecomeTutorPage() {
       <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-aos="zoom-in">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+          <p className="text-sm text-blue-200 mb-3" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}>start today</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-6">
             Get paid to teach online in Sri Lanka
           </h2>
-          <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
             Join TutorLink today and start building your teaching career from home
           </p>
 

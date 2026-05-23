@@ -11,8 +11,9 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   Plus, MapPin, CalendarDays, Clock, Users,
   Video, Building, MoreVertical, Edit, Trash2, Eye,
-  BookOpen, AlertCircle, X, GraduationCap, Mail,
+  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, ArrowLeft,
 } from "lucide-react"
+import FolderManager from "@/components/folder-manager"
 
 export default function TutorClassesPage() {
   const router = useRouter()
@@ -28,7 +29,8 @@ export default function TutorClassesPage() {
 
   // Edit modal
   const [editTarget, setEditTarget] = useState<any | null>(null)
-  const [editForm, setEditForm] = useState({ subject: "", description: "", time: "", duration: "", fees: "", maxStudents: "" })
+  const [editTab, setEditTab] = useState<"details" | "materials">("details")
+  const [editForm, setEditForm] = useState({ subject: "", description: "", meetingLink: "", time: "", duration: "", fees: "", maxStudents: "" })
   const [isSavingEdit, setIsSavingEdit] = useState(false)
   const [editError, setEditError] = useState("")
 
@@ -78,9 +80,11 @@ export default function TutorClassesPage() {
 
   const openEdit = (cls: any) => {
     setEditTarget(cls)
+    setEditTab("details")
     setEditForm({
       subject: cls.subject || "",
       description: cls.description || "",
+      meetingLink: cls.meetingLink || "",
       time: cls.time || "",
       duration: cls.duration || "",
       fees: cls.fees?.toString() || "",
@@ -99,6 +103,7 @@ export default function TutorClassesPage() {
       const res = await api.updateClass(editTarget.id, {
         subject: editForm.subject.trim(),
         description: editForm.description.trim() || undefined,
+        meetingLink: editForm.meetingLink.trim() || null,
         time: editForm.time || undefined,
         duration: editForm.duration.trim() || undefined,
         fees: editForm.fees ? parseInt(editForm.fees) : undefined,
@@ -106,6 +111,7 @@ export default function TutorClassesPage() {
       })
       setClasses(prev => prev.map(c => c.id === editTarget.id ? res.class : c))
       setEditTarget(null)
+      setEditTab("details")
     } catch (err: any) {
       setEditError(err.message || "Failed to update class")
     } finally {
@@ -114,12 +120,6 @@ export default function TutorClassesPage() {
   }
 
   const openStudents = (cls: any) => { setStudentsTarget(cls); setActionMenuOpen(null) }
-
-  if (isLoading) return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-      <LoadingSpinner size="lg" />
-    </div>
-  )
 
   const activeClasses = classes.filter(c => c.status === "ACTIVE")
   const cancelledClasses = classes.filter(c => c.status === "CANCELLED")
@@ -203,14 +203,26 @@ export default function TutorClassesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
+    <div className="min-h-screen bg-gray-50">
       <TutorNavbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 text-sm transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />Back
+        </button>
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Classes</h1>
-            <p className="text-gray-500 mt-0.5">Manage your tutoring classes</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">My Classes</h1>
+              <p className="text-sm text-gray-500">Manage your tutoring classes</p>
+            </div>
           </div>
           <Button
             onClick={() => router.push("/tutor/classes/create")}
@@ -221,15 +233,21 @@ export default function TutorClassesPage() {
           </Button>
         </div>
 
-        {tutorStatus !== "APPROVED" && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-amber-800">Approval Required</h3>
-              <p className="text-sm text-amber-700 mt-0.5">You need to be an approved tutor to create and manage classes.</p>
-            </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <LoadingSpinner size="lg" />
           </div>
-        )}
+        ) : (
+          <>
+            {tutorStatus !== "APPROVED" && (
+              <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-amber-800">Approval Required</h3>
+                  <p className="text-sm text-amber-700 mt-0.5">You need to be an approved tutor to create and manage classes.</p>
+                </div>
+              </div>
+            )}
 
         {tutorStatus === "APPROVED" && classes.length === 0 && (
           <Card className="border-0 shadow-sm">
@@ -273,6 +291,8 @@ export default function TutorClassesPage() {
             </div>
           </div>
         )}
+          </>
+        )}
       </main>
 
       {/* Delete Confirmation Modal */}
@@ -310,47 +330,104 @@ export default function TutorClassesPage() {
       {editTarget && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900">Edit Class</h3>
-              <button onClick={() => setEditTarget(null)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+            {/* Header */}
+            <div className="flex-shrink-0 flex items-center justify-between px-6 pt-5 pb-0">
+              <h3 className="text-lg font-bold text-gray-900">{editTarget.subject}</h3>
+              <button onClick={() => { setEditTarget(null); setEditTab("details") }} className="p-1.5 hover:bg-gray-100 rounded-lg">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {editError && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{editError}</div>}
-              {[
-                { label: "Subject *", field: "subject", placeholder: "e.g. Mathematics" },
-                { label: "Description", field: "description", placeholder: "Brief description..." },
-                { label: "Time", field: "time", placeholder: "e.g. 4:00 PM", type: "time" },
-                { label: "Duration", field: "duration", placeholder: "e.g. 2 hours" },
-                { label: "Monthly Fees (Rs.)", field: "fees", placeholder: "e.g. 2500", type: "number" },
-                { label: "Max Students", field: "maxStudents", placeholder: "e.g. 10", type: "number" },
-              ].map(({ label, field, placeholder, type }) => (
-                <div key={field}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
-                  <input
-                    type={type || "text"}
-                    value={(editForm as any)[field]}
-                    onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                  />
-                </div>
+
+            {/* Tabs */}
+            <div className="flex-shrink-0 flex gap-1 px-6 pt-4 pb-0 border-b border-gray-100">
+              {(["details", "materials"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setEditTab(tab)}
+                  className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors capitalize ${
+                    editTab === tab
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {tab === "details" ? "Details" : "Materials"}
+                </button>
               ))}
             </div>
-            <div className="flex-shrink-0 flex gap-3 p-6 border-t border-gray-100">
-              <button onClick={() => setEditTarget(null)} className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50">
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={isSavingEdit}
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isSavingEdit && <LoadingSpinner size="sm" />}
-                Save Changes
-              </button>
+
+            {/* Tab content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {editTab === "details" ? (
+                <div className="space-y-4">
+                  {editError && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{editError}</div>}
+                  {[
+                    { label: "Subject *", field: "subject", placeholder: "e.g. Mathematics" },
+                    { label: "Description", field: "description", placeholder: "Brief description..." },
+                  ].map(({ label, field, placeholder }) => (
+                    <div key={field}>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+                      <input
+                        type="text"
+                        value={(editForm as any)[field]}
+                        onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                        placeholder={placeholder}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Meeting Link (optional)</label>
+                    <div className="relative">
+                      <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="url"
+                        value={editForm.meetingLink}
+                        onChange={e => setEditForm(p => ({ ...p, meetingLink: e.target.value }))}
+                        placeholder="https://zoom.us/j/... or https://meet.google.com/..."
+                        className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Paste your Zoom, Google Meet, or Teams link</p>
+                  </div>
+                  {[
+                    { label: "Time", field: "time", placeholder: "e.g. 4:00 PM", type: "time" },
+                    { label: "Duration", field: "duration", placeholder: "e.g. 2 hours" },
+                    { label: "Monthly Fees (Rs.)", field: "fees", placeholder: "e.g. 2500", type: "number" },
+                    { label: "Max Students", field: "maxStudents", placeholder: "e.g. 10", type: "number" },
+                  ].map(({ label, field, placeholder, type }) => (
+                    <div key={field}>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+                      <input
+                        type={type || "text"}
+                        value={(editForm as any)[field]}
+                        onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                        placeholder={placeholder}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <FolderManager classId={editTarget.id} />
+              )}
             </div>
+
+            {/* Footer — only show Save on details tab */}
+            {editTab === "details" && (
+              <div className="flex-shrink-0 flex gap-3 p-6 border-t border-gray-100">
+                <button onClick={() => { setEditTarget(null); setEditTab("details") }} className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50">
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={isSavingEdit}
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSavingEdit && <LoadingSpinner size="sm" />}
+                  Save Changes
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -361,8 +438,10 @@ export default function TutorClassesPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
             <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Students</h3>
-                <p className="text-sm text-gray-500">{studentsTarget.subject}</p>
+                <h3 className="text-lg font-bold text-gray-900">{studentsTarget.subject}</h3>
+                <p className="text-sm text-gray-500">
+                  {studentsTarget.enrollments?.length || 0} / {studentsTarget.maxStudents} students enrolled
+                </p>
               </div>
               <button onClick={() => setStudentsTarget(null)} className="p-1.5 hover:bg-gray-100 rounded-lg">
                 <X className="w-5 h-5 text-gray-400" />
@@ -370,18 +449,30 @@ export default function TutorClassesPage() {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {studentsTarget.enrollments?.length > 0 ? (
-                <div className="space-y-3">
-                  {studentsTarget.enrollments.map((enrollment: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {enrollment.student?.user?.fullName?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "S"}
+                <div className="space-y-2">
+                  {studentsTarget.enrollments.map((enrollment: any, i: number) => {
+                    const name = enrollment.student?.user?.fullName || "Student"
+                    const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                    return (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        {enrollment.student?.avatar ? (
+                          <img src={enrollment.student.avatar} alt={name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {initials}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900">{name}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            <Mail className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{enrollment.student?.user?.email}</span>
+                          </p>
+                        </div>
+                        <span className="flex-shrink-0 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{enrollment.student?.user?.fullName || "Student"}</p>
-                        <p className="text-xs text-gray-500 flex items-center gap-1"><Mail className="w-3 h-3" />{enrollment.student?.user?.email}</p>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-10">
@@ -389,7 +480,7 @@ export default function TutorClassesPage() {
                     <GraduationCap className="w-6 h-6 text-gray-400" />
                   </div>
                   <p className="text-sm font-medium text-gray-700">No students enrolled yet</p>
-                  <p className="text-xs text-gray-400 mt-1">{studentsTarget.enrolledCount || 0} / {studentsTarget.maxStudents} spots filled</p>
+                  <p className="text-xs text-gray-400 mt-1">0 / {studentsTarget.maxStudents} spots filled</p>
                 </div>
               )}
             </div>

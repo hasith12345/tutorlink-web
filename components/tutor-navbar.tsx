@@ -11,14 +11,11 @@ import {
   ChevronDown,
   LogOut,
   User,
-  Star,
   CheckCheck,
-  Users,
-  Calendar,
-  DollarSign,
   ArrowLeftRight,
 } from "lucide-react"
 import { authStorage } from "@/lib/api"
+import { useNotifications } from "@/hooks/use-notifications"
 
 const navItems = [
   { label: "Dashboard", href: "/tutor/dashboard" },
@@ -34,12 +31,7 @@ export function TutorNavbar() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [scrolled, setScrolled] = useState(false)
-  const [notifications, setNotifications] = useState([
-    { id: "1", title: "New Enrollment", message: "Alice Miller enrolled in your Calculus class", time: "5 min ago", read: false, icon: <Users className="w-4 h-4 text-blue-500" /> },
-    { id: "2", title: "Session Reminder", message: "Physics session starts in 30 minutes", time: "25 min ago", read: false, icon: <Calendar className="w-4 h-4 text-green-500" /> },
-    { id: "3", title: "Payment Received", message: "Rs.5,000 received for Math tutoring", time: "1 day ago", read: true, icon: <DollarSign className="w-4 h-4 text-emerald-500" /> },
-    { id: "4", title: "New Review", message: "A student left you a 5-star review", time: "2 days ago", read: true, icon: <Star className="w-4 h-4 text-amber-500" /> },
-  ])
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
   const router = useRouter()
   const pathname = usePathname()
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -82,9 +74,6 @@ export function TutorNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const unreadCount = notifications.filter((n) => !n.read).length
-  const markAllAsRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-
   const handleLogout = () => {
     authStorage.clear()
     setUser(null)
@@ -118,24 +107,30 @@ export function TutorNavbar() {
             </span>
           </Link>
 
-          {/* Center Nav Links (Desktop) */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              )
-            })}
+          {/* Center Nav Links (Desktop) — pill/search-bar style */}
+          <div className="hidden lg:flex items-center">
+            <div className="flex items-center bg-white border border-gray-200 rounded-full shadow-sm">
+              {navItems.map((item, index) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
+                return (
+                  <div key={item.href} className="flex items-center">
+                    {index !== 0 && (
+                      <div className="w-px h-4 bg-gray-200 flex-shrink-0" />
+                    )}
+                    <Link
+                      href={item.href}
+                      className={`flex items-center px-4 py-2 text-xs font-bold transition-all whitespace-nowrap rounded-full
+                        ${isActive
+                          ? "text-indigo-700"
+                          : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                        }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* Right Side */}
@@ -169,20 +164,33 @@ export function TutorNavbar() {
                     )}
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {notifications.map((n) => (
-                      <div key={n.id} className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${!n.read ? "bg-indigo-50/40" : ""}`}>
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">{n.icon}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${!n.read ? "font-semibold text-gray-900" : "text-gray-700"}`}>{n.title}</p>
-                          <p className="text-xs text-gray-500 truncate">{n.message}</p>
-                          <p className="text-[10px] text-gray-400 mt-0.5">{n.time}</p>
+                    {notifications.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-8">No notifications yet</p>
+                    ) : (
+                      notifications.slice(0, 8).map((n) => (
+                        <div
+                          key={n.id}
+                          onClick={() => { markAsRead(n.id); router.push("/dashboard/notifications") }}
+                          className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${!n.read ? "bg-indigo-50/40" : ""}`}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                            <Bell className="w-4 h-4 text-indigo-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm ${!n.read ? "font-semibold text-gray-900" : "text-gray-700"}`}>{n.title}</p>
+                            <p className="text-xs text-gray-500 truncate">{n.message}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{new Date(n.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          {!n.read && <div className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0 mt-1.5" />}
                         </div>
-                        {!n.read && <div className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0 mt-1.5" />}
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                   <div className="border-t border-gray-100 p-2">
-                    <button className="w-full text-center text-xs text-indigo-600 hover:text-indigo-700 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors">
+                    <button
+                      onClick={() => { setIsNotificationsOpen(false); router.push("/dashboard/notifications") }}
+                      className="w-full text-center text-xs text-indigo-600 hover:text-indigo-700 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+                    >
                       View all notifications
                     </button>
                   </div>

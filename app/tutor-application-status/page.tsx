@@ -118,6 +118,34 @@ export default function TutorApplicationStatusPage() {
     )
   }
 
+  if (status === "NOT_SUBMITTED") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-4 py-12">
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors mb-8">
+            <ArrowLeft className="w-4 h-4" />Back
+          </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6 text-center">
+            <div className="flex items-center justify-center">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-10 h-10 text-gray-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Application Incomplete</h1>
+            <p className="text-gray-500">Your tutor profile exists but your application details have not been submitted yet.</p>
+            <button
+              onClick={() => router.push('/complete-tutor-application')}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            >
+              Complete &amp; Submit Application
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // PENDING state (default)
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">

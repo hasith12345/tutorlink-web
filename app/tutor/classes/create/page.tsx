@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { TimePicker } from "@/components/ui/time-picker"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { SubjectSelector } from "@/components/subject-selector"
 import {
   ArrowLeft, BookOpen, MapPin, Clock, DollarSign, Users,
   Video, Building, Loader2, CheckCircle, FileText, CalendarDays,
@@ -32,6 +32,7 @@ export default function CreateClassPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [tutorSubjects, setTutorSubjects] = useState<string[]>([])
 
   const [form, setForm] = useState({
     subject: "",
@@ -54,6 +55,9 @@ export default function CreateClassPage() {
       try {
         const statusRes = await api.getTutorApplicationStatus()
         if (statusRes.tutorStatus !== "APPROVED") { router.push("/tutor/dashboard"); return }
+        if (statusRes.profile?.subjects?.length > 0) {
+          setTutorSubjects(statusRes.profile.subjects)
+        }
       } catch { router.push("/tutor/dashboard"); return }
       setIsLoading(false)
     }
@@ -158,11 +162,16 @@ export default function CreateClassPage() {
                   <BookOpen className="w-4 h-4 text-indigo-500" />
                   Subject <span className="text-red-500">*</span>
                 </Label>
-                <SubjectSelector
-                  values={form.subject ? [form.subject] : []}
-                  onChange={(vals) => handleChange("subject", vals[vals.length - 1] || "")}
-                  placeholder="Search or select a subject..."
-                />
+                <select
+                  value={form.subject}
+                  onChange={(e) => handleChange("subject", e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white text-gray-900"
+                >
+                  <option value="">Select a subject...</option>
+                  {tutorSubjects.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Description */}
@@ -265,7 +274,7 @@ export default function CreateClassPage() {
                     <Clock className="w-4 h-4 text-indigo-500" />
                     Class Time <span className="text-red-500">*</span>
                   </Label>
-                  <Input type="time" value={form.time} onChange={(e) => handleChange("time", e.target.value)} />
+                  <TimePicker value={form.time} onChange={(time) => handleChange("time", time)} />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
