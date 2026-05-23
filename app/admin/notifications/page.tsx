@@ -50,31 +50,33 @@ export default function AdminNotificationsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <Bell className="w-5 h-5 text-purple-600" />
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Bell className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+              <p className="text-gray-500 text-sm">
+                {unreadCount > 0
+                  ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
+                  : "All caught up"}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-            <p className="text-gray-500 text-sm">
-              {unreadCount > 0
-                ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
-                : "All caught up"}
-            </p>
-          </div>
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 font-medium"
+            >
+              <CheckCheck className="w-4 h-4" />
+              Mark all as read
+            </button>
+          )}
         </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 font-medium"
-          >
-            <CheckCheck className="w-4 h-4" />
-            Mark all as read
-          </button>
-        )}
       </div>
 
       {/* List */}
