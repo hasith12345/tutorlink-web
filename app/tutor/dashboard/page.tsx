@@ -15,7 +15,7 @@ import {
   Star,
   Plus,
   Calendar,
-  Upload,
+  MessageSquare,
   ArrowUpRight,
   Clock,
   Video,
@@ -423,13 +423,13 @@ export default function TutorDashboardPage() {
                     <span className="text-xs font-medium">Create Class</span>
                   </Button>
                   <Button
-                    onClick={() => router.push("/tutor/schedule")}
+                    onClick={() => router.push("/tutor/messages")}
                     disabled={tutorStatus !== "APPROVED"}
                     variant="outline"
                     className="h-auto py-4 flex flex-col items-center gap-2 rounded-xl border-gray-200 hover:bg-gray-50"
                   >
-                    <Calendar className="w-5 h-5 text-gray-600" />
-                    <span className="text-xs font-medium text-gray-700">Manage Schedule</span>
+                    <MessageSquare className="w-5 h-5 text-gray-600" />
+                    <span className="text-xs font-medium text-gray-700">Messages</span>
                   </Button>
                   <Button
                     onClick={() => router.push("/tutor/earnings")}
@@ -440,11 +440,13 @@ export default function TutorDashboardPage() {
                     <span className="text-xs font-medium text-gray-700">View Earnings</span>
                   </Button>
                   <Button
+                    onClick={() => router.push("/tutor/students")}
+                    disabled={tutorStatus !== "APPROVED"}
                     variant="outline"
                     className="h-auto py-4 flex flex-col items-center gap-2 rounded-xl border-gray-200 hover:bg-gray-50"
                   >
-                    <Upload className="w-5 h-5 text-gray-600" />
-                    <span className="text-xs font-medium text-gray-700">Upload Materials</span>
+                    <Users className="w-5 h-5 text-gray-600" />
+                    <span className="text-xs font-medium text-gray-700">Students</span>
                   </Button>
                 </div>
               </CardContent>

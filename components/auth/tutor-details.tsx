@@ -76,7 +76,7 @@ export function TutorDetails({ onBack, onSuccess, userData }: TutorDetailsProps)
     address: "",
     idNumber: "",
     qualifications: [""],
-    subjects: [""],
+    subjects: [],
     experience: [""]
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
