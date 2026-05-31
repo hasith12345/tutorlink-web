@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { GraduationCap } from "lucide-react"
 
 export function Footer() {
   return (
@@ -22,22 +21,22 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/search" className="hover:text-white transition-colors">
                   Find a Tutor
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/become-tutor" className="hover:text-white transition-colors">
                   Become a Tutor
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/search" className="hover:text-white transition-colors">
                   Browse Subjects
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/#how-it-works" className="hover:text-white transition-colors">
                   How It Works
                 </Link>
               </li>
@@ -49,22 +48,17 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/help-center" className="hover:text-white transition-colors">
-                  Help Center
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact-us" className="hover:text-white transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/faqs" className="hover:text-white transition-colors">
                   FAQs
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/safety-tips" className="hover:text-white transition-colors">
                   Safety Tips
                 </Link>
               </li>
@@ -76,17 +70,17 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/privacy-policy" className="hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/terms-of-service" className="hover:text-white transition-colors">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/cookie-policy" className="hover:text-white transition-colors">
                   Cookie Policy
                 </Link>
               </li>
