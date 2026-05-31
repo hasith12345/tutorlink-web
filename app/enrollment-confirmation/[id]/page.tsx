@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -17,10 +17,17 @@ export default function EnrollmentConfirmationPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  const resolvedParams = React.use(params)
+  return (
+    <Suspense>
+      <EnrollmentConfirmationContent tutorId={resolvedParams.id} />
+    </Suspense>
+  )
+}
+
+function EnrollmentConfirmationContent({ tutorId }: { tutorId: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const resolvedParams = React.use(params)
-  const tutorId = resolvedParams.id
 
   const classId = searchParams.get("classId")
   const amount = searchParams.get("amount")

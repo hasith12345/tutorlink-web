@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
@@ -114,10 +114,17 @@ function CheckoutForm({
 }
 
 export default function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params)
+  return (
+    <Suspense>
+      <PaymentContent tutorId={resolvedParams.id} />
+    </Suspense>
+  )
+}
+
+function PaymentContent({ tutorId }: { tutorId: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const resolvedParams = React.use(params)
-  const tutorId = resolvedParams.id
   const classId = searchParams.get("classId")
 
   const [clientSecret, setClientSecret] = useState<string | null>(null)

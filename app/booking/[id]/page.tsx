@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -69,10 +69,17 @@ const scheduledClasses: Record<number, ScheduledClass[]> = {
 }
 
 export default function BookingPage({ params }: { params: Promise<{ id: string }> }) {
-  const router = useRouter()
   const resolvedParams = React.use(params)
+  return (
+    <Suspense>
+      <BookingContent tutorId={parseInt(resolvedParams.id)} />
+    </Suspense>
+  )
+}
+
+function BookingContent({ tutorId }: { tutorId: number }) {
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const tutorId = parseInt(resolvedParams.id)
   const tutor = tutorInfo[tutorId] || tutorInfo[1]
   const classes = scheduledClasses[tutorId] || []
 

@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function OAuthErrorPage() {
+function OAuthErrorContent() {
   const [error, setError] = useState<string>('Authentication failed')
   const searchParams = useSearchParams()
 
@@ -43,5 +43,13 @@ export default function OAuthErrorPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OAuthErrorPage() {
+  return (
+    <Suspense>
+      <OAuthErrorContent />
+    </Suspense>
   )
 }
