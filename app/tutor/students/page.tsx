@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
 import { TutorNavbar } from "@/components/tutor-navbar"
 import { Badge } from "@/components/ui/badge"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   ArrowLeft, Users, GraduationCap, BookOpen, CalendarDays,
   Clock, Monitor, Building, Mail, ChevronDown, ChevronRight,
@@ -78,9 +78,28 @@ export default function TutorStudentsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <LoadingSpinner size="lg" />
-          </div>
+          <>
+            {/* Search skeleton */}
+            <Skeleton className="h-10 w-72 rounded-xl bg-gray-200 mb-4" />
+
+            {/* Student rows skeleton */}
+            <div className="space-y-3">
+              {[0,1,2,3,4].map(i => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex items-center gap-4">
+                  <Skeleton className="w-11 h-11 rounded-full bg-gray-200 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-36 bg-gray-200" />
+                    <Skeleton className="h-3 w-48 bg-gray-200" />
+                  </div>
+                  <div className="hidden sm:block space-y-1 text-right flex-shrink-0">
+                    <Skeleton className="h-3 w-20 bg-gray-200" />
+                    <Skeleton className="h-3 w-14 bg-gray-200" />
+                  </div>
+                  <Skeleton className="w-4 h-4 rounded bg-gray-200 flex-shrink-0 ml-2" />
+                </div>
+              ))}
+            </div>
+          </>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
             <p className="text-red-600 font-medium">{error}</p>

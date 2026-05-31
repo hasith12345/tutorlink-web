@@ -5,16 +5,37 @@ import { api, authStorage, type Notification } from '@/lib/api'
 const SOCKET_URL =
   (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api').replace(/\/api$/, '')
 
+function isPushEnabled() {
+  if (typeof window === 'undefined') return true
+  const stored = localStorage.getItem('pushNotificationsEnabled')
+  return stored === null ? true : stored === 'true'
+}
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [pushEnabled, setPushEnabled] = useState(isPushEnabled)
   const socketRef = useRef<any>(null)
 
   useEffect(() => {
+    const handleChange = () => setPushEnabled(isPushEnabled())
+    window.addEventListener('pushNotificationsChanged', handleChange)
+    return () => window.removeEventListener('pushNotificationsChanged', handleChange)
+  }, [])
+
+  useEffect(() => {
     const token = authStorage.getToken()
-    if (!token) {
+    if (!token || !pushEnabled) {
       setLoading(false)
+      if (!pushEnabled) {
+        setNotifications([])
+        setUnreadCount(0)
+        if (socketRef.current) {
+          socketRef.current.disconnect()
+          socketRef.current = null
+        }
+      }
       return
     }
 
@@ -47,7 +68,7 @@ export function useNotifications() {
         socketRef.current = null
       }
     }
-  }, [])
+  }, [pushEnabled])
 
   const markAsRead = useCallback(async (id: string) => {
     try {

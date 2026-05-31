@@ -160,7 +160,7 @@ export function SubjectSelector({
         {/* Input Field */}
         <div className="flex gap-2 p-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 flex-wrap bg-white min-h-[44px]">
           {/* Selected subjects */}
-          {values.map((subject, idx) => (
+          {values.filter(s => s.trim()).map((subject, idx) => (
             <div
               key={idx}
               className="flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
@@ -168,7 +168,7 @@ export function SubjectSelector({
               {subject}
               <button
                 type="button"
-                onClick={() => onChange(values.filter((_, i) => i !== idx))}
+                onClick={() => onChange(values.filter(s => s !== subject))}
                 className="hover:text-indigo-900 transition-colors"
               >
                 <X className="w-4 h-4" />

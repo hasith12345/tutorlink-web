@@ -355,51 +355,6 @@ export default function BecomeTutorPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16" data-aos="fade-up">
-            <p className="text-sm text-gray-400 mb-2" style={{ fontFamily: 'var(--font-bitcount-grid-double)' }}>Testimonials</p>
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              Hear from our tutors
-            </h2>
-            <p className="text-xl text-gray-500 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
-              Real stories from real tutors across Sri Lanka
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white" data-aos="fade-up" data-aos-delay={index * 150}>
-                <CardContent className="p-8">
-                  <div className="flex items-center gap-1 mb-4">
-                    {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                    ))}
-                  </div>
-
-                  <p className="text-gray-700 mb-6 italic" style={{ fontFamily: 'var(--font-delicious-handrawn)' }}>
-                    "{testimonial.quote}"
-                  </p>
-
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={testimonial.avatar}
-                      alt={testimonial.name}
-                      className="w-14 h-14 rounded-full border-2 border-indigo-100"
-                    />
-                    <div>
-                      <div className="font-bold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA Section */}
       <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />

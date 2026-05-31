@@ -47,26 +47,41 @@ export default function ClassDetailPage() {
   const [reviewError, setReviewError] = useState("")
   const [deletingReview, setDeletingReview] = useState(false)
 
+  // Unenroll state
+  const [showUnenrollConfirm, setShowUnenrollConfirm] = useState(false)
+  const [unenrolling, setUnenrolling] = useState(false)
+  const [unenrollError, setUnenrollError] = useState("")
+
   useEffect(() => {
     async function load() {
       try {
-        const [enrollmentsRes, foldersRes] = await Promise.all([
-          api.getStudentEnrollments(),
-          api.getClassFolders(classId),
-        ])
+        const enrollmentsRes = await api.getStudentEnrollments()
         const found = enrollmentsRes.enrollments.find(e => e.class.id === classId)
         if (!found) { setError("Class not found"); return }
         setEnrollment(found)
-        setFolders(foldersRes.folders)
-        setExpandedFolders(new Set(foldersRes.folders.filter(f => f.materials.length > 0).map(f => f.id)))
 
-        // Check if already reviewed
-        const reviewRes = await api.getMyReview(found.enrollmentId)
-        if (reviewRes.review) {
-          setExistingReview(reviewRes.review)
-          setSelectedRating(reviewRes.review.rating)
-          setReviewComment(reviewRes.review.comment || "")
+        // Only fetch folders if access isn't blocked — saves a 403 round trip
+        if (!found.accessBlocked) {
+          try {
+            const foldersRes = await api.getClassFolders(classId)
+            setFolders(foldersRes.folders)
+            setExpandedFolders(new Set(foldersRes.folders.filter(f => f.materials.length > 0).map(f => f.id)))
+          } catch {
+            setFolders([])
+          }
+        } else {
+          setFolders([])
         }
+
+        // Check if already reviewed (best-effort)
+        try {
+          const reviewRes = await api.getMyReview(found.enrollmentId)
+          if (reviewRes.review) {
+            setExistingReview(reviewRes.review)
+            setSelectedRating(reviewRes.review.rating)
+            setReviewComment(reviewRes.review.comment || "")
+          }
+        } catch {}
       } catch (e: any) {
         setError(e.message || "Failed to load class")
       } finally {
@@ -91,6 +106,26 @@ export default function ClassDetailPage() {
       setReviewError(e.message || "Failed to submit review")
     } finally {
       setSubmittingReview(false)
+    }
+  }
+
+  async function handleUnenroll() {
+    if (!enrollment) return
+    setUnenrolling(true)
+    setUnenrollError("")
+    try {
+      const res = await api.unenrollFromClass(enrollment.enrollmentId)
+      setEnrollment({
+        ...enrollment,
+        status: res.enrollment.status,
+        unenrolledAt: res.enrollment.unenrolledAt,
+        accessUntil: res.enrollment.accessUntil,
+      })
+      setShowUnenrollConfirm(false)
+    } catch (e: any) {
+      setUnenrollError(e.message || "Failed to unenroll")
+    } finally {
+      setUnenrolling(false)
     }
   }
 
@@ -216,7 +251,7 @@ export default function ClassDetailPage() {
 
             {/* Action buttons */}
             <div className="mt-4 flex flex-wrap gap-3">
-              {cls.meetingLink && (
+              {cls.meetingLink && !enrollment.accessBlocked && (
                 <a
                   href={cls.meetingLink}
                   target="_blank"
@@ -226,13 +261,82 @@ export default function ClassDetailPage() {
                   <Video className="w-4 h-4" /> Join Class
                 </a>
               )}
+              {cls.meetingLink && enrollment.accessBlocked && (
+                <button
+                  disabled
+                  title="Renew payment to regain access"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed"
+                >
+                  <Video className="w-4 h-4" /> Join Class
+                </button>
+              )}
               <button
                 onClick={() => router.push(`/dashboard/messages?tutorId=${cls.tutorId}`)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 text-indigo-700 border border-indigo-200 text-sm font-semibold rounded-xl transition-colors"
               >
                 <MessageCircle className="w-4 h-4" /> Message Tutor
               </button>
+              {enrollment.status === "ACTIVE" && (
+                <button
+                  onClick={() => setShowUnenrollConfirm(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 text-sm font-semibold rounded-xl transition-colors ml-auto"
+                >
+                  <Trash2 className="w-4 h-4" /> Unenroll
+                </button>
+              )}
             </div>
+
+            {/* Pending payment banner — grace period (access still works) */}
+            {enrollment.isPaymentDue && !enrollment.accessBlocked && enrollment.status === "ACTIVE" && (
+              <div className="mt-4 flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <Clock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm flex-1">
+                  <p className="font-semibold text-amber-900">Monthly payment due</p>
+                  <p className="text-amber-700 text-xs mt-0.5">
+                    Renew before <strong>{enrollment.accessExpiresAt && new Date(enrollment.accessExpiresAt).toLocaleDateString("en-US", { day: "numeric", month: "long" })}</strong> to keep access. After that, materials and meeting link will be blocked until you pay.
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push(`/payment/${cls.tutorId}?classId=${cls.id}`)}
+                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
+                >
+                  Pay Now
+                </button>
+              </div>
+            )}
+
+            {/* Access blocked banner — overdue past grace period */}
+            {enrollment.accessBlocked && enrollment.status === "ACTIVE" && (
+              <div className="mt-4 flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <Clock className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm flex-1">
+                  <p className="font-semibold text-red-900">Access blocked — payment overdue</p>
+                  <p className="text-red-700 text-xs mt-0.5">
+                    Your 15-day grace period has ended. Renew your monthly payment to restore access to materials and the meeting link.
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push(`/payment/${cls.tutorId}?classId=${cls.id}`)}
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
+                >
+                  Pay Now
+                </button>
+              </div>
+            )}
+
+            {/* Access ending banner — shown when student has unenrolled but still has grace period */}
+            {enrollment.status === "UNENROLLED" && enrollment.accessUntil && (
+              <div className="mt-4 flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <Clock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-semibold text-amber-900">You've unenrolled from this class</p>
+                  <p className="text-amber-700 text-xs mt-0.5">
+                    Access to materials and meeting link continues until{" "}
+                    <strong>{new Date(enrollment.accessUntil).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}</strong>.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -384,14 +488,28 @@ export default function ClassDetailPage() {
                   ) : (
                     <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
                       <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      Review submitted — thank you!
+                      Review submitted - thank you!
                     </div>
                   )}
                 </div>
               </div>
             ) : (
               /* Materials Tab */
-              folders.length === 0 ? (
+              enrollment.accessBlocked ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3">
+                    <Clock className="w-7 h-7 text-red-400" />
+                  </div>
+                  <p className="text-gray-700 font-semibold mb-1">Materials are locked</p>
+                  <p className="text-gray-400 text-sm mb-4">Renew your monthly payment to access materials again</p>
+                  <button
+                    onClick={() => router.push(`/payment/${cls.tutorId}?classId=${cls.id}`)}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    Pay Now
+                  </button>
+                </div>
+              ) : folders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
                     <FolderOpen className="w-7 h-7 text-indigo-300" />
@@ -455,6 +573,49 @@ export default function ClassDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Unenroll Confirmation Modal */}
+      {showUnenrollConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900">Unenroll from this class?</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    You'll keep access to materials and the meeting link for the rest of your paid period (30 days from your last payment). After that you'll lose access.
+                  </p>
+                </div>
+              </div>
+
+              {unenrollError && (
+                <p className="text-sm text-red-600 mb-3">{unenrollError}</p>
+              )}
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => { setShowUnenrollConfirm(false); setUnenrollError("") }}
+                  disabled={unenrolling}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Keep Enrolled
+                </button>
+                <button
+                  onClick={handleUnenroll}
+                  disabled={unenrolling}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {unenrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Yes, Unenroll
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -8,6 +8,7 @@ import {
   BookOpen, Briefcase, Loader2, Search, ShieldCheck, CreditCard, ImageIcon, X,
   Calendar, Phone, MapPin, User,
 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type ApplicationStatus = "PENDING" | "APPROVED" | "REJECTED" | ""
 
@@ -105,7 +106,7 @@ export default function TutorApprovalsPage() {
             <div className={`w-10 h-10 bg-${color}-50 rounded-lg flex items-center justify-center mb-3`}>
               <Icon className={`w-5 h-5 text-${color}-600`} />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{isLoading ? "—" : value}</p>
+            {isLoading ? <Skeleton className="h-7 w-16 mb-1" /> : <p className="text-2xl font-bold text-gray-900">{value}</p>}
             <p className="text-sm text-gray-500 mt-0.5">{label}</p>
           </div>
         ))}
@@ -147,8 +148,24 @@ export default function TutorApprovalsPage() {
 
         {/* List */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          <div className="divide-y divide-gray-50">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-4">
+                <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <div className="hidden md:flex gap-2">
+                  <Skeleton className="h-5 w-28 rounded" />
+                  <Skeleton className="h-5 w-16 rounded" />
+                </div>
+                <Skeleton className="hidden lg:block h-3 w-24" />
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { authStorage } from "@/lib/api"
 import { GraduationCap, Users, ArrowRight } from "lucide-react"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 /**
  * Role Selection Page
@@ -73,10 +73,32 @@ export default function SelectRolePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-slate-600">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+        <div className="max-w-4xl w-full">
+          {/* Header skeleton */}
+          <div className="text-center mb-12 flex flex-col items-center gap-3">
+            <Skeleton className="h-4 w-28 bg-gray-200" />
+            <Skeleton className="h-14 w-56 bg-gray-200" />
+            <Skeleton className="h-5 w-48 bg-gray-200" />
+          </div>
+
+          {/* Role cards skeleton */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {[0,1].map(i => (
+              <div key={i} className="bg-white rounded-2xl p-8 border-2 border-slate-200 space-y-4">
+                <Skeleton className="w-16 h-16 rounded-xl bg-gray-200" />
+                <Skeleton className="h-7 w-48 bg-gray-200" />
+                <Skeleton className="h-4 w-full bg-gray-200" />
+                <Skeleton className="h-4 w-3/4 bg-gray-200" />
+                <div className="space-y-2 pt-1">
+                  {[0,1,2].map(j => (
+                    <Skeleton key={j} className="h-4 w-40 bg-gray-200" />
+                  ))}
+                </div>
+                <Skeleton className="h-5 w-36 bg-gray-200 mt-2" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )

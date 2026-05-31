@@ -10,6 +10,7 @@ import {
   Award, BookMarked, Briefcase, Cake,
 } from "lucide-react"
 import { api, authStorage, UserProfile, UpdateProfileData } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
 import { SubjectSelector } from "@/components/subject-selector"
 
 type EditSection = "personal" | "student" | "tutor" | null
@@ -209,10 +210,63 @@ export default function ProfilePage() {
   const NavComponent = activeRole === 'tutor' ? TutorNavbar : Navbar
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50"><NavComponent />
-      <div className="flex items-center justify-center h-[calc(100vh-80px)]">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <NavComponent />
+      <main className="max-w-2xl mx-auto px-4 py-8">
+        <Skeleton className="h-4 w-16 bg-gray-200 mb-6" />
+
+        {/* Profile header card */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+          <div className="flex items-center gap-5">
+            <Skeleton className="w-20 h-20 rounded-full bg-gray-200 flex-shrink-0" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-44 bg-gray-200" />
+              <Skeleton className="h-4 w-36 bg-gray-200" />
+              <div className="flex gap-2 pt-1">
+                <Skeleton className="h-5 w-20 rounded-full bg-gray-200" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Personal info card */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+          <div className="flex items-center justify-between mb-5">
+            <Skeleton className="h-5 w-44 bg-gray-200" />
+            <Skeleton className="h-7 w-16 rounded-lg bg-gray-200" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {[0,1,2,3].map(i => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="w-4 h-4 rounded bg-gray-200 mt-0.5 flex-shrink-0" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3 w-16 bg-gray-200" />
+                  <Skeleton className="h-4 w-28 bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Student/tutor section card */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <Skeleton className="h-5 w-36 bg-gray-200" />
+            <Skeleton className="h-7 w-16 rounded-lg bg-gray-200" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {[0,1].map(i => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="w-4 h-4 rounded bg-gray-200 mt-0.5 flex-shrink-0" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3 w-20 bg-gray-200" />
+                  <Skeleton className="h-4 w-32 bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   )
 

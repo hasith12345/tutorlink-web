@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react"
 import {
   DollarSign, TrendingUp, CreditCard, Receipt,
-  Users, Loader2, Monitor, Building, Search,
+  Users, Monitor, Building, Search,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PaymentsPage() {
   const [data, setData] = useState<Awaited<ReturnType<typeof api.getAdminPayments>> | null>(null)
@@ -58,7 +59,7 @@ export default function PaymentsPage() {
             <div className={`w-10 h-10 bg-${color}-50 rounded-lg flex items-center justify-center mb-3`}>
               <Icon className={`w-5 h-5 text-${color}-600`} />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{loading ? "—" : value}</p>
+            {loading ? <Skeleton className="h-7 w-16 mb-1" /> : <p className="text-2xl font-bold text-gray-900">{value}</p>}
             <p className="text-sm text-gray-500 mt-0.5">{label}</p>
           </div>
         ))}
@@ -83,8 +84,35 @@ export default function PaymentsPage() {
 
         {/* Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tutor</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tutor (92%)</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Platform (8%)</th>
+                  <th className="text-center px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="text-center px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[...Array(6)].map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-5 py-4"><Skeleton className="h-4 w-28 mb-1" /><Skeleton className="h-3 w-36" /></td>
+                    <td className="px-5 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-5 py-4"><Skeleton className="h-4 w-32 mb-1" /><Skeleton className="h-4 w-16 rounded-full" /></td>
+                    <td className="px-5 py-4 text-right"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                    <td className="px-5 py-4 text-right"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                    <td className="px-5 py-4 text-right"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                    <td className="px-5 py-4 text-center"><Skeleton className="h-5 w-20 mx-auto rounded-full" /></td>
+                    <td className="px-5 py-4 text-center"><Skeleton className="h-3 w-20 mx-auto" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">

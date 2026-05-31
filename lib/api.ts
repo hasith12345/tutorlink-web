@@ -38,9 +38,11 @@ export interface ConversationDetail {
 
 export interface Review {
   id: string
-  tutorId: string
-  studentId: string
+  tutorId?: string
+  studentId?: string
   enrollmentId: string
+  classId?: string
+  classSubject?: string
   rating: number
   comment?: string | null
   createdAt: string
@@ -439,7 +441,12 @@ class ApiClient {
     })
   }
 
-  async getTutorSuggestions(query: string, limit = 10): Promise<{ success: boolean; suggestions: any[] }> {
+  async getTutorSuggestions(query: string, limit = 10): Promise<{
+    success: boolean
+    subjects: Array<{ type: 'subject'; value: string; displayText: string; count: number }>
+    tutors: Array<{ type: 'tutor'; id: string; name: string; subject: string | null; displayText: string; avatar: string | null }>
+    suggestions: any[]
+  }> {
     const queryParams = new URLSearchParams({ query, limit: limit.toString() })
     return this.request(`/tutors/suggestions?${queryParams.toString()}`, {
       method: 'GET',
@@ -504,6 +511,13 @@ class ApiClient {
     return this.request('/tutor/application/status', {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` },
+    })
+  }
+
+  async recordTutorHeartbeat(): Promise<{ ok: boolean; lastOnlineAt: string; isAvailable: boolean }> {
+    return this.request('/tutor/heartbeat', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }
 
@@ -707,6 +721,13 @@ class ApiClient {
     })
   }
 
+  async reactivateTutor(userId: string): Promise<{ message: string; tutor: any }> {
+    return this.request(`/auth/admin/users/${userId}/reactivate-tutor`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
+    })
+  }
+
   async createPaymentIntent(classId: string): Promise<{
     clientSecret: string
     paymentIntentId: string
@@ -805,6 +826,12 @@ class ApiClient {
     return this.request(`/reviews/tutor/${tutorId}`)
   }
 
+  async getClassReviews(classId: string): Promise<{ reviews: Review[]; count: number; averageRating: number }> {
+    return this.request(`/reviews/class/${classId}`, {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
   async getMyReview(enrollmentId: string): Promise<{ review: Review | null }> {
     return this.request(`/reviews/my-review/${enrollmentId}`, {
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
@@ -823,6 +850,12 @@ class ApiClient {
       enrollmentId: string
       enrolledAt: string
       status: string
+      unenrolledAt?: string | null
+      accessUntil?: string | null
+      isPaymentDue?: boolean
+      accessBlocked?: boolean
+      nextPaymentDue?: string | null
+      accessExpiresAt?: string | null
       class: {
         id: string
         subject: string
@@ -842,6 +875,16 @@ class ApiClient {
     }>
   }> {
     return this.request('/payments/student/enrollments', {
+      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+    })
+  }
+
+  async unenrollFromClass(enrollmentId: string): Promise<{
+    message: string
+    enrollment: { id: string; status: string; unenrolledAt: string; accessUntil: string }
+  }> {
+    return this.request(`/payments/student/enrollments/${enrollmentId}/unenroll`, {
+      method: 'POST',
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }

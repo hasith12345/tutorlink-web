@@ -42,7 +42,6 @@ export default function EnrollmentConfirmationPage({
   const ModeIcon = classDetails?.cls?.mode === "physical" ? Building : Monitor
   const amountPaid = amount ? parseInt(amount) : classDetails?.cls?.fees
   const platformFee = amountPaid ? Math.round(amountPaid * 0.08) : 0
-  const tutorEarning = amountPaid ? amountPaid - platformFee : 0
 
   return (
     <>
@@ -154,10 +153,10 @@ export default function EnrollmentConfirmationPage({
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button
-                    onClick={() => router.push("/dashboard")}
+                    onClick={() => router.push("/dashboard/my-classes")}
                     className="flex-1 h-12 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
                   >
-                    Go to Dashboard <ArrowRight className="w-4 h-4" />
+                    My Classes <ArrowRight className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="outline"
@@ -183,11 +182,7 @@ export default function EnrollmentConfirmationPage({
                             <span className="font-semibold text-gray-900">Rs.{amountPaid.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-gray-400 text-xs">
-                            <span>→ Tutor (92%)</span>
-                            <span>Rs.{tutorEarning.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between text-gray-400 text-xs">
-                            <span>→ Service fee (8%)</span>
+                            <span>Incl. 8% service fee</span>
                             <span>Rs.{platformFee.toLocaleString()}</span>
                           </div>
                         </>
@@ -229,10 +224,17 @@ export default function EnrollmentConfirmationPage({
                 <Card className="bg-white rounded-2xl border-0 shadow-lg">
                   <CardContent className="p-6">
                     <h3 className="font-bold text-gray-900 mb-4">Need Help?</h3>
-                    <Button className="w-full h-10 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-semibold flex items-center justify-center gap-2 mb-2 shadow-none">
+                    <Button
+                      onClick={() => router.push(`/dashboard/messages?tutorId=${tutorId}`)}
+                      className="w-full h-10 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-semibold flex items-center justify-center gap-2 mb-2 shadow-none"
+                    >
                       <MessageCircle className="w-4 h-4" />Message Tutor
                     </Button>
-                    <Button variant="outline" className="w-full h-10 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold flex items-center justify-center gap-2">
+                    <Button
+                      onClick={() => router.push("/contact-us")}
+                      variant="outline"
+                      className="w-full h-10 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold flex items-center justify-center gap-2"
+                    >
                       <Mail className="w-4 h-4" />Contact Support
                     </Button>
                   </CardContent>

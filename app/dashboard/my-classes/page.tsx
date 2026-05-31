@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   GraduationCap, CalendarDays, Clock, Monitor, Building,
   ChevronRight, BookOpen, ArrowLeft, Video,
@@ -48,8 +48,33 @@ export default function MyClassesPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <LoadingSpinner size="lg" />
+          <div className="space-y-4">
+            {[0,1,2,3].map(i => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Skeleton className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-28 bg-gray-200" />
+                        <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
+                      </div>
+                      <Skeleton className="h-3 w-24 bg-gray-200" />
+                      <div className="flex gap-3">
+                        <Skeleton className="h-3 w-32 bg-gray-200" />
+                        <Skeleton className="h-3 w-24 bg-gray-200" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <Skeleton className="h-3 w-10 bg-gray-200" />
+                    <Skeleton className="h-4 w-16 bg-gray-200" />
+                    <Skeleton className="h-5 w-14 rounded-full bg-gray-200" />
+                    <Skeleton className="w-4 h-4 rounded bg-gray-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
@@ -79,92 +104,100 @@ export default function MyClassesPage() {
                   className="bg-white rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => router.push(`/dashboard/my-classes/${e.class.id}`)}
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                  <CardContent className="px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         {/* Tutor avatar */}
                         <div className="flex-shrink-0">
                           {e.class.tutorAvatar ? (
                             <img
                               src={e.class.tutorAvatar}
                               alt={e.class.tutorName}
-                              className="w-12 h-12 rounded-full object-cover"
+                              className="w-10 h-10 rounded-full object-cover"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                               {e.class.tutorName.charAt(0).toUpperCase()}
                             </div>
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-bold text-gray-900 truncate">{e.class.subject}</h3>
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-blue-50 text-blue-700 border-blue-200 flex-shrink-0"
-                            >
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 flex-shrink-0">
                               <ModeIcon className="w-3 h-3 mr-1" />
                               {e.class.mode.charAt(0).toUpperCase() + e.class.mode.slice(1)}
                             </Badge>
                           </div>
-
-                          <p className="text-sm text-indigo-600 font-medium mb-2">{e.class.tutorName}</p>
-
-                          {e.class.description && (
-                            <p className="text-sm text-gray-500 mb-2 line-clamp-1">{e.class.description}</p>
-                          )}
-
-                          <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                          <p className="text-xs text-indigo-600 font-medium mt-0.5">{e.class.tutorName}</p>
+                          <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-1">
                             {e.class.schedule.length > 0 && (
-                              <div className="flex items-center gap-1">
-                                <CalendarDays className="w-3.5 h-3.5 text-indigo-400" />
-                                <span>{e.class.schedule.join(", ")}</span>
-                              </div>
+                              <span className="flex items-center gap-1">
+                                <CalendarDays className="w-3 h-3 text-indigo-400" />
+                                {e.class.schedule.join(", ")}
+                              </span>
                             )}
                             {e.class.time && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                                <span>{e.class.time} · {e.class.duration}</span>
-                              </div>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-indigo-400" />
+                                {e.class.time} · {e.class.duration}
+                              </span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         <div className="text-right">
-                          <p className="text-xs text-gray-400">Monthly</p>
-                          <p className="font-bold text-indigo-600 text-sm">
-                            Rs.{e.class.fees.toLocaleString()}
-                          </p>
+                          <p className="text-[10px] text-gray-400">Monthly</p>
+                          <p className="font-bold text-indigo-600 text-sm">Rs.{e.class.fees.toLocaleString()}</p>
                         </div>
-                        <Badge className="bg-green-100 text-green-700 border-0 text-xs">
-                          Active
-                        </Badge>
+                        {e.status === "UNENROLLED" && e.accessUntil ? (
+                          <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">
+                            Ends {new Date(e.accessUntil).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                          </Badge>
+                        ) : e.accessBlocked ? (
+                          <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">
+                            Access Blocked
+                          </Badge>
+                        ) : e.isPaymentDue ? (
+                          <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">
+                            Payment Due
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">Active</Badge>
+                        )}
                         <ChevronRight className="w-4 h-4 text-gray-300" />
                       </div>
                     </div>
 
-                    {/* Quick actions row */}
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
-                      {e.class.meetingLink && (
-                        <a
-                          href={e.class.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={ev => ev.stopPropagation()}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors"
-                        >
-                          <Video className="w-3.5 h-3.5" /> Join Class
-                        </a>
-                      )}
-                      {e.payment && (
-                        <span className="ml-auto text-xs text-green-600 font-medium">
-                          Paid Rs.{e.payment.totalAmount.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
+                    {/* Quick actions row — only shown when there's content */}
+                    {(e.class.meetingLink || e.payment) && (
+                      <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2">
+                        {e.class.meetingLink && !e.accessBlocked && (
+                          <a
+                            href={e.class.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={ev => ev.stopPropagation()}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors"
+                          >
+                            <Video className="w-3 h-3" /> Join Class
+                          </a>
+                        )}
+                        {e.accessBlocked && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 text-xs font-medium rounded-lg">
+                            <Clock className="w-3 h-3" /> Renew to access
+                          </span>
+                        )}
+                        {e.payment && (
+                          <span className="ml-auto text-xs text-green-600 font-medium">
+                            Paid Rs.{e.payment.totalAmount.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )

@@ -142,8 +142,6 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => { fetchIntent() }, [fetchIntent])
 
-  const platformFee = classDetails ? Math.round(classDetails.fees * 0.08) : 0
-
   const ModeIcon = classDetails?.mode === "physical" ? Users : Monitor
 
   if (loading) return (
@@ -249,14 +247,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
                         <span>Monthly fee</span>
                         <span>Rs.{classDetails.fees.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between text-gray-400 text-xs">
-                        <span>→ Tutor (92%)</span>
-                        <span>Rs.{(classDetails.fees - platformFee).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-gray-400 text-xs">
-                        <span>→ Service fee (8%)</span>
-                        <span>Rs.{platformFee.toLocaleString()}</span>
-                      </div>
+                      <p className="text-xs text-gray-400">Includes 8% service fee</p>
                     </div>
 
                     <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4">
