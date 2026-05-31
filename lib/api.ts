@@ -1033,7 +1033,7 @@ class ApiClient {
     }>
   }> {
     return this.request('/payments/admin', {
-      headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
+      headers: { 'Authorization': `Bearer ${this.getAdminToken()}` },
     })
   }
 
