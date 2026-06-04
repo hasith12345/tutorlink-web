@@ -15,7 +15,7 @@ export default function AdminClassesPage() {
   const [classes, setClasses] = useState<AdminClass[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<"all" | "active" | "on hold" | "cancelled">("all")
+  const [filter, setFilter] = useState<"all" | "active" | "on hold">("all")
   const [deleteTarget, setDeleteTarget] = useState<AdminClass | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState("")
@@ -78,8 +78,7 @@ export default function AdminClassesPage() {
     const matchesFilter =
       filter === "all" ||
       (filter === "active" && c.status === "ACTIVE") ||
-      (filter === "on hold" && c.status === "ON_HOLD") ||
-      (filter === "cancelled" && c.status === "CANCELLED")
+      (filter === "on hold" && c.status === "ON_HOLD")
     return matchesSearch && matchesFilter
   })
 
@@ -138,7 +137,7 @@ export default function AdminClassesPage() {
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {(["all", "active", "on hold", "cancelled"] as const).map((f) => (
+            {(["all", "active", "on hold"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
