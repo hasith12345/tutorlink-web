@@ -1,599 +1,355 @@
-# TutorLink - Smart Student-Tutor Platform (Frontend)
+# TutorLink — Smart Student-Tutor Platform
 
-A modern, intuitive platform connecting students with qualified tutors. Built with Next.js, TypeScript, and Tailwind CSS.
+A full-stack web platform connecting students in Sri Lanka with qualified tutors for private tuition. Students discover tutors, enrol in classes, and communicate in real time. Tutors manage classes, materials, and earnings. An admin panel handles approvals and oversight.
 
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Authentication Flow](#authentication-flow)
-- [Pages & Components](#pages--components)
-- [Signup Flow Components](#signup-flow-components)
-- [Features](#features)
-- [Design Decisions](#design-decisions)
-- [Getting Started](#getting-started)
+**Live Frontend:** [tutorlink-web.vercel.app](https://tutorlink-web.vercel.app)  
+**Live API:** [tutorlink-api.onrender.com](https://tutorlink-api.onrender.com)
 
 ---
 
-## 🎯 Overview
+## Tech Stack
 
-TutorLink is a comprehensive platform that facilitates connections between students seeking educational support and experienced tutors. The platform features a streamlined **3-step signup flow** with role-specific profile completion for both students and tutors.
+### Frontend
+| Technology | Version | Purpose |
+|---|---|---|
+| Next.js | 16.0.10 | App Router, SSR, routing |
+| TypeScript | — | Type safety |
+| Tailwind CSS | 4.1.9 | Styling |
+| Radix UI + shadcn/ui | — | Component library |
+| Framer Motion | 12.23.26 | Animations |
+| React Hook Form + Zod | 7.x / 3.x | Form validation |
+| Stripe | 9.x | Payment UI (Elements) |
+| Socket.io-client | 4.8.3 | Real-time messaging |
+| Recharts | 2.15.4 | Analytics charts |
+| Resend | 6.9.2 | Contact form emails |
+| Vercel Analytics | 1.3.1 | Page view analytics |
+
+### Backend
+| Technology | Version | Purpose |
+|---|---|---|
+| Node.js | 20.x | Runtime |
+| Express | 5.2.1 | HTTP server |
+| PostgreSQL + Prisma | 7.3.0 | Database + ORM |
+| JWT (jsonwebtoken) | 9.0.3 | Authentication |
+| bcryptjs | 3.0.3 | Password hashing |
+| Stripe | 22.1.1 | Payment processing |
+| Socket.io | 4.8.3 | Real-time messaging |
+| Cloudinary | 2.9.0 | File & media storage |
+| Nodemailer / Resend | — | Transactional email |
+| Auth0 | 5.2.0 | Google OAuth |
+| node-cron | 4.2.1 | Scheduled jobs |
 
 ---
 
-## 🛠 Tech Stack
+## Features
 
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **UI Components:** Custom components built with shadcn/ui
-- **Icons:** Lucide React
-- **Animations:** Framer Motion
-- **Form Validation:** Client-side validation with real-time feedback
-- **Package Manager:** pnpm
+### Students
+- Browse and search tutors by subject, location, and mode (online / physical / hybrid)
+- View tutor profiles with ratings, reviews, and class details
+- Enrol in classes with Stripe-powered monthly payments (LKR)
+- Access class materials — documents, videos, images organised in folders
+- Real-time messaging with tutors via Socket.io
+- Review and rate tutors after enrolment
+- Manage enrolments, payment history, and account settings from the dashboard
+
+### Tutors
+- Apply to become a tutor with qualifications and ID verification
+- Admin review and approval workflow with email notifications
+- Create and manage classes — subjects, schedules, fees, and modes
+- Upload class materials organised in custom folders via Cloudinary
+- Track earnings, enrolled students, and reviews from the dashboard
+- Real-time messaging with students
+- Automated availability management — daily cron marks tutors inactive after 30 days offline
+
+### Admin
+- Approve or reject tutor applications
+- Manage all user accounts (ban / unban / reactivate)
+- View and manage all platform classes (hold / unhold / force delete)
+- Monitor all payments and platform revenue with a summary dashboard
+- Broadcast notifications to users
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-TutorLink - Frontend/
-├── app/
-│   ├── globals.css           # Global styles
-│   ├── layout.tsx            # Root layout
-│   ├── page.tsx              # Home page
-│   ├── login/
-│   │   └── page.tsx          # Login page
-│   └── register/
-│       └── page.tsx          # Registration page
-├── components/
-│   ├── auth/
-│   │   ├── auth-container.tsx    # Main auth flow container
-│   │   ├── register-form.tsx     # Step 1: Basic credentials
-│   │   ├── role-selection.tsx    # Step 2: Role selection
-│   │   ├── student-details.tsx   # Step 3a: Student profile
-│   │   └── tutor-details.tsx     # Step 3b: Tutor profile
-│   ├── ui/                   # Reusable UI components
-│   └── theme-provider.tsx    # Theme management
-├── lib/
-│   └── utils.ts              # Utility functions
-└── public/
-    ├── Student.png           # Student illustration
-    └── Tutor.png             # Tutor illustration
-```
-
----
-
-## 🔐 Authentication Flow
-
-### Complete Signup Journey
-
-The platform implements a **3-step progressive disclosure signup flow** designed for clarity, reduced cognitive load, and improved user experience.
-
-### **Step 1: Initial Registration** (`register-form.tsx`)
-
-**Purpose:** Collect basic user credentials
-
-**Fields:**
-- **Full Name** - Required, minimum 2 characters
-- **Email Address** - Required, validated email format
-- **Password** - Required, minimum 8 characters, visibility toggle
-- **Confirm Password** - Required, must match password
-
-**Features:**
-- Real-time validation with error messages
-- Password visibility toggle (eye icon)
-- Visual feedback for validation states
-- "Already have an account?" login link
-
-**User Flow:**
-1. User enters credentials
-2. Client-side validation checks all fields
-3. On valid submission, data is passed to auth container
-4. Flow proceeds to Step 2
-
----
-
-### **Step 2: Role Selection** (`role-selection.tsx`)
-
-**Purpose:** Allow users to choose their role in the platform
-
-**Options:**
-- **Student** - For learners seeking tutoring help
-- **Tutor** - For educators offering teaching services
-
-**Features:**
-- Visual card-based selection
-- Hover effects with smooth transitions
-- Back button to return to credentials form
-- Role-specific illustrations (Student.png / Tutor.png)
-
-**User Flow:**
-1. User sees two role cards
-2. Clicks on their preferred role
-3. Selection triggers navigation to role-specific details page
-
----
-
-### **Step 3a: Student Details** (`student-details.tsx`)
-
-**Purpose:** Collect student-specific profile information
-
-**Layout:**
-- **Fixed Header:** "Complete Your Student Profile" with subtitle
-- **Scrollable Form Content:** All form fields with proper spacing
-- **Fixed Footer:** Submit button ("Create Student Account")
-
-**Fields:**
-
-1. **Education Level** (Required)
-   - Dropdown selection with right padding
-   - Options: School, University, Professional
-   
-2. **Grade** (Conditionally Required)
-   - Only appears when Education Level is "School"
-   - Options: Grade 1-13
-   
-3. **Subjects** (Required, minimum 1)
-   - **Toggle-based selection** (no text input)
-   - 15 subjects: Math, Science, English, History, Geography, Physics, Chemistry, Biology, Economics, Business Studies, ICT, Art, Music, Physical Education, Languages
-   - Selected subjects show indigo background with white text
-   - X icon appears on selected items for deselection
-   - Visual feedback on hover
-   
-4. **Learning Mode** (Required)
-   - Three-option grid: Online, In-Person, Both
-   - Selected mode shows indigo background
-
-**Features:**
-- Sticky header/footer with scrollable middle content
-- Real-time validation
-- Conditional grade field rendering
-- Toggle-based subject selection with visual states
-- Error messages for each field
-- Loading state on submission
-- Back button to return to role selection
-
-**API Integration:**
-- Submits to `/api/auth/signup` with all collected data
-- Payload includes: fullName, email, password, role: "student", educationLevel, grade (if school), subjects, learningMode
-
----
-
-### **Step 3b: Tutor Details** (`tutor-details.tsx`)
-
-**Purpose:** Collect tutor-specific profile information
-
-**Layout:**
-- **Fixed Header:** "Complete Your Tutor Profile" with subtitle
-- **Scrollable Form Content:** All form fields
-- **Fixed Footer:** Submit button ("Create Tutor Account")
-
-**Fields:**
-
-1. **Subjects You Can Teach** (Required, minimum 1)
-   - **Toggle-based selection** (no text input)
-   - Same 15 subjects as student form
-   - Selected subjects show purple background with white text
-   - X icon for deselection
-   - Visual hover feedback
-   
-2. **Education Levels You Can Teach** (Required, minimum 1)
-   - Multi-select grid
-   - Options: School, University, Professional
-   - Selected levels show purple background
-   
-3. **Teaching Experience** (Required)
-   - Dropdown with right padding
-   - Options: Less than 1 year, 1-2 years, 3-5 years, 5-10 years, 10+ years
-
-**Features:**
-- Sticky header/footer with scrollable content
-- Real-time validation
-- Toggle-based subject selection (matches student UX)
-- Multi-select grid for education levels
-- Error messages for invalid states
-- Loading state during submission
-- Back button to return to role selection
-
-**API Integration:**
-- Submits to `/api/auth/signup`
-- Payload includes: fullName, email, password, role: "tutor", subjects, educationLevels, experience
-
----
-
-## 🧩 Pages & Components
-
-### Pages
-
-#### **Home Page** (`app/page.tsx`)
-- Landing page of the application
-- Entry point for users
-
-#### **Login Page** (`app/login/page.tsx`)
-- User authentication page
-- Links to registration for new users
-
-#### **Register Page** (`app/register/page.tsx`)
-- Hosts the complete signup flow
-- Uses `auth-container.tsx` to manage flow
-
----
-
-### Signup Flow Components
-
-#### **Auth Container** (`auth-container.tsx`)
-
-**Purpose:** Orchestrates the entire authentication flow
-
-**State Management:**
-- `signupStep`: Tracks current step ("initial" | "role" | "student-details" | "tutor-details")
-- `userData`: Persists user data across steps (fullName, email, password)
-- `selectedRole`: Stores chosen role ("student" | "tutor")
-
-**Functions:**
-- `handleSignUpClick`: Receives credentials from Step 1, stores in state, advances to Step 2
-- `handleRoleSelect`: Receives role choice, advances to appropriate Step 3 page
-- `goBack`: Navigation handler for back buttons
-
-**Features:**
-- Split-panel layout (illustration left, form right)
-- Framer Motion animations for smooth transitions
-- GPU-accelerated animations with optimized performance
-- Production-ready transitions (no flickering or layout shifts)
-- Coordinated animation timing across all elements
-- TutorLink branding with gradient logo on overlay panels
-- Terms & Privacy Policy acknowledgment
-- Responsive design (stacked on mobile)
-- Role-specific theme colors (indigo for students, purple for tutors)
-
----
-
-#### **Register Form** (`register-form.tsx`)
-
-**Validation Functions:**
-- `validateEmail`: RFC-compliant email validation
-- `validatePassword`: Minimum 8 characters
-- `validateConfirmPassword`: Must match password
-- `validateFullName`: Minimum 2 characters
-
-**Error States:**
-- Individual error messages for each field
-- Real-time validation feedback
-- Visual error indicators
-
----
-
-#### **Role Selection** (`role-selection.tsx`)
-
-**Features:**
-- Card-based UI with hover effects
-- Role-specific icons and descriptions
-- Back button with smooth transitions
-- Responsive grid layout
-
----
-
-#### **Student Details** (`student-details.tsx`)
-
-**Form Architecture:**
-- Flexbox layout with sticky header/footer
-- `flex-shrink-0` for fixed elements
-- `overflow-y-auto` with `min-h-0` for scrollable content
-
-**Subject Selection Pattern:**
-```typescript
-const toggleSubject = (subject: string) => {
-  if (subjects.includes(subject)) {
-    setSubjects(subjects.filter(s => s !== subject));
-  } else {
-    setSubjects([...subjects, subject]);
-  }
-};
-```
-
-**Conditional Grade Rendering:**
-```typescript
-{educationLevel === "school" && (
-  <div className="space-y-2">
-    <Label>Grade *</Label>
-    <select value={grade} onChange={(e) => setGrade(e.target.value)}>
-      {/* Grade options */}
-    </select>
-  </div>
-)}
+TutorLink - Smart Student-Tutor Platform/
+├── tutorlink-web/                  # Next.js frontend → Vercel
+│   ├── app/
+│   │   ├── page.tsx                # Homepage
+│   │   ├── login/ register/        # Authentication
+│   │   ├── verify-email/           # Email verification
+│   │   ├── forgot-password/        # Password reset
+│   │   ├── reset-password/
+│   │   ├── select-role/            # Role switcher
+│   │   ├── search/                 # Tutor discovery
+│   │   ├── tutor/                  # Tutor profiles, dashboard, classes, earnings, messages
+│   │   ├── become-tutor/           # Tutor onboarding
+│   │   ├── complete-tutor-application/
+│   │   ├── tutor-application-status/
+│   │   ├── gig-details/[id]/       # Class detail page
+│   │   ├── payment/[id]/           # Stripe checkout
+│   │   ├── enrollment-confirmation/[id]/
+│   │   ├── dashboard/              # Student dashboard
+│   │   │   ├── my-classes/
+│   │   │   ├── messages/
+│   │   │   ├── notifications/
+│   │   │   ├── profile/
+│   │   │   └── settings/
+│   │   ├── admin/                  # Admin panel
+│   │   │   ├── login/
+│   │   │   ├── accounts/
+│   │   │   ├── classes/
+│   │   │   ├── notifications/
+│   │   │   ├── payments/
+│   │   │   ├── tutor-applications/
+│   │   │   └── tutor-approvals/
+│   │   ├── api/contact/            # Contact form API route
+│   │   ├── contact-us/
+│   │   ├── faqs/
+│   │   ├── safety-tips/
+│   │   ├── privacy-policy/
+│   │   ├── terms-of-service/
+│   │   └── cookie-policy/
+│   ├── components/                 # Shared UI components
+│   ├── lib/api.ts                  # Centralised API client
+│   └── next.config.mjs             # CSP headers, image config
+│
+└── tutorlink-api/                  # Express backend → Render
+    ├── src/
+    │   ├── controllers/            # auth, tutor, payment, message, review, notification
+    │   ├── routes/                 # API route definitions
+    │   ├── middleware/             # auth, error handling
+    │   ├── jobs/                   # Tutor availability cron (daily 02:00)
+    │   ├── utils/                  # hash, email helpers
+    │   ├── models/                 # Prisma client instance
+    │   └── app.js                  # Express + CORS setup
+    ├── prisma/
+    │   ├── schema.prisma           # Database schema
+    │   └── seed.js                 # 100 Sri Lankan tutors seed
+    └── server.js                   # HTTP + Socket.io server
 ```
 
 ---
 
-#### **Tutor Details** (`tutor-details.tsx`)
+## Database Schema
 
-**Education Level Multi-Select:**
-```typescript
-const toggleEducationLevel = (level: string) => {
-  if (educationLevels.includes(level)) {
-    setEducationLevels(educationLevels.filter(l => l !== level));
-  } else {
-    setEducationLevels([...educationLevels, level]);
-  }
-};
-```
-
-**Theme:** Purple accent color (`bg-purple-600`, `text-purple-600`)
-
----
-
-## ✨ Features
-
-### User Experience
-
-1. **Progressive Disclosure**
-   - Information collected in logical steps
-   - Reduces initial form complexity
-   - Lower cognitive load for users
-
-2. **Real-Time Validation**
-   - Immediate feedback on field errors
-   - Granular error messages
-   - Visual indicators for validation states
-
-3. **Smooth Animations**
-   - Framer Motion transitions between steps
-   - Coordinated timing across all animated elements (0.4s-0.65s)
-   - GPU-accelerated with `willChange` optimization
-   - No flickering or layout jumps in production
-   - Synchronized panel and form transitions
-   - Hover effects on interactive elements
-   - Loading states during submissions
-
-4. **Responsive Design**
-   - Mobile-first approach
-   - Adaptive layouts for all screen sizes
-   - Touch-friendly interactive elements
-
-5. **Accessibility**
-   - Semantic HTML structure
-   - Proper label associations
-   - Keyboard navigation support
-
-### Technical Features
-
-1. **Type Safety**
-   - Full TypeScript implementation
-   - Strict type checking
-   - Interface definitions for all data structures
-
-2. **Component Reusability**
-   - Shared UI components library
-   - Consistent design system
-   - DRY principle adherence
-
-3. **State Management**
-   - React hooks for local state
-   - Optimized to prevent unnecessary re-renders
-   - Animation-aware state updates using `requestAnimationFrame`
-   - Prevents route-triggered remounts during transitions
-   - Prop drilling for data flow
-   - State persistence across steps
-
-4. **Form Handling**
-   - Controlled components
-   - Validation logic separation
-   - Error state management
-
-5. **Performance Optimization**
-   - Fixed dimensions to prevent layout shifts
-   - GPU acceleration with `willChange` properties
-   - Coordinated animation timing (no conflicting transitions)
-   - Minimal re-renders during navigation
-   - Production-optimized for Vercel deployment
+| Model | Key Fields |
+|---|---|
+| `User` | email, password, isEmailVerified, isBanned |
+| `Student` | dob, phone, schoolGrade, parentName, avatar |
+| `Tutor` | subject, subjects[], location, learningMode, applicationStatus, rating, isAvailable |
+| `Class` | subject, mode, schedule[], fees (LKR), status (ACTIVE / CANCELLED / COMPLETED) |
+| `Enrollment` | status, accessUntil, lastPaymentDueNotifiedAt |
+| `Payment` | stripePaymentId, totalAmount, tutorAmount (92%), platformAmount (8%) |
+| `Review` | rating (1–5), comment — linked to enrollment |
+| `Conversation` | unique student-tutor pair |
+| `Message` | content, senderId, read |
+| `Notification` | type, title, message, read — null userId = admin notification |
+| `ClassFolder` | name, order — groups class materials |
+| `ClassMaterial` | url, resourceType (image / document / video), isPublished |
 
 ---
 
-## 🎨 Design Decisions
+## API Reference
 
-### Why 3-Step Signup?
+### Auth — `/api/auth`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/signup` | Register new user |
+| POST | `/login` | Login |
+| POST | `/verify-email` | Verify email code |
+| POST | `/resend-verification` | Resend verification |
+| POST | `/forgot-password` | Request password reset |
+| POST | `/reset-password` | Reset with token |
+| GET | `/oauth/login` | Initiate Google OAuth |
+| GET | `/oauth/callback` | OAuth callback |
+| POST | `/add-role` | Add student/tutor profile to existing account |
+| GET | `/me` | Get current user (auth) |
+| PUT | `/profile` | Update profile (auth) |
+| PUT | `/change-password` | Change password (auth) |
+| POST | `/admin/login` | Admin login |
+| GET | `/admin/users` | List all users |
+| PUT | `/admin/users/:id/ban` | Ban user |
+| PUT | `/admin/users/:id/unban` | Unban user |
 
-1. **Reduced Cognitive Load:** Breaking the signup into steps prevents overwhelming users
-2. **Better UX:** Users see relevant fields based on their role
-3. **Higher Completion Rates:** Progressive disclosure improves form completion
-4. **Flexibility:** Easy to add/modify role-specific requirements
+### Tutors — `/api/tutors`
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/search` | Search tutors — subject, location, mode, limit |
+| GET | `/suggestions` | Autocomplete for search input |
+| GET | `/:id` | Get tutor profile + active classes |
 
-### Toggle-Based Subject Selection
+### Tutor Management — `/api/tutor`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/application/submit` | Submit tutor application |
+| GET | `/application/status` | Check application status |
+| POST | `/heartbeat` | Update last online timestamp |
+| POST | `/classes` | Create class |
+| GET | `/classes` | Get own classes |
+| PUT | `/classes/:id` | Update class |
+| PUT | `/classes/:id/cancel` | Cancel class |
+| DELETE | `/classes/:id` | Delete class |
+| GET | `/admin/applications` | All applications |
+| PUT | `/admin/applications/:id/approve` | Approve tutor |
+| PUT | `/admin/applications/:id/reject` | Reject tutor |
+| GET | `/admin/classes` | All classes |
+| PUT | `/admin/classes/:id/hold` | Hold class |
+| PUT | `/admin/classes/:id/unhold` | Unhold class |
+| DELETE | `/admin/classes/:id` | Force delete class |
 
-**Previous Design:** Text input + "Add" button + separate display area
+### Payments — `/api/payments`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/create-intent` | Create Stripe PaymentIntent |
+| POST | `/confirm` | Confirm payment + create enrollment |
+| GET | `/admin` | Admin payments + revenue summary |
+| GET | `/tutor/earnings` | Tutor earnings overview |
+| GET | `/tutor/students` | Tutor's enrolled students |
+| GET | `/student/enrollments` | Student's active enrollments |
+| POST | `/student/enrollments/:id/unenroll` | Unenroll from class |
 
-**Current Design:** Direct toggle buttons with visual feedback
+### Messages — `/api/messages`
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/conversations` | List all conversations |
+| POST | `/conversations` | Start or get conversation |
+| GET | `/conversations/:id` | Get messages |
+| POST | `/conversations/:id/messages` | Send message |
+| PUT | `/conversations/:id/read` | Mark conversation as read |
 
-**Benefits:**
-- Faster selection process
-- Visual confirmation of selections
-- Fewer UI interactions required
-- Cleaner interface (no redundant displays)
-- Consistent with modern UI patterns
-
-### Sticky Header/Footer Layout
-
-**Implementation:**
-```css
-/* Parent container */
-flex flex-col overflow-hidden
-
-/* Header/Footer */
-flex-shrink-0
-
-/* Scrollable content */
-flex-1 overflow-y-auto min-h-0
-```
-
-**Why:**
-- Always-visible context (header shows current step)
-- Always-accessible action (footer submit button)
-- Scrollable content prevents cut-off on small screens
-
-### Color Theming
-
-- **Students:** Indigo (`#4F46E5`) - Represents learning and growth
-- **Tutors:** Purple (`#9333EA`) - Represents wisdom and expertise
-- **Brand Logo:** Gradient (Cyan → Pink) - Modern, friendly, and energetic
-- **Consistent Application:** Used in buttons, selected states, and accents
-
-### Animation Architecture
-
-**Coordinated Timing System:**
-- Panel sliding: 0.65s cubic-bezier transition
-- Panel content: 0.4s ease-in-out
-- Form transitions: 0.5s ease-in-out
-- Framer Motion: 0.5s duration for consistency
-
-**Performance Optimizations:**
-- `willChange` applied during active animations
-- `translateZ(0)` for GPU layer creation
-- `backfaceVisibility: hidden` to prevent flickering
-- Fixed dimensions (400-500px) to prevent layout shifts
-- `requestAnimationFrame` for smooth state transitions
-
-**Why This Matters:**
-- Eliminates flickering in production deployments
-- Provides buttery-smooth user experience
-- Prevents layout jumps during navigation
-- Optimized for low-end devices
+### Other
+| Prefix | Description |
+|---|---|
+| `/api/reviews` | Create, read, delete tutor/class reviews |
+| `/api/notifications` | User and admin notifications |
+| `/api/upload` | Multer + Cloudinary file upload |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
+- Node.js 20+
+- PostgreSQL database (Supabase recommended)
+- Stripe account (test keys)
+- Cloudinary account
+- Auth0 app (optional, for Google OAuth)
 
-- Node.js 18+ installed
-- pnpm package manager
-
-### Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-
-# Navigate to frontend directory
-cd "TutorLink - Frontend"
-
-# Install dependencies
-pnpm install
-```
-
-### Development
+### Frontend
 
 ```bash
-# Start development server
-pnpm dev
-
-# Open browser
-Visit http://localhost:3000
+cd tutorlink-web
+npm install
 ```
 
-### Build
+Create `.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5001/api
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+RESEND_API_KEY=re_...
+```
 
 ```bash
-# Create production build
-pnpm build
+npm run dev        # http://localhost:3000
+```
 
-# Start production server
-pnpm start
+### Backend
+
+```bash
+cd tutorlink-api
+npm install
+npx prisma migrate dev
+```
+
+Create `.env`:
+```env
+PORT=5001
+NODE_ENV=development
+DATABASE_URL=postgresql://...
+DIRECT_URL=postgresql://...
+JWT_SECRET=your_strong_secret
+JWT_EXPIRES=7d
+FRONTEND_URL=http://localhost:3000
+EMAIL_SERVICE=gmail
+EMAIL_USER=your@gmail.com
+EMAIL_PASSWORD=your_app_password
+EMAIL_FROM="TutorLink <noreply@tutorlink.lk>"
+AUTH0_DOMAIN=your.auth0.com
+AUTH0_CLIENT_ID=...
+AUTH0_CLIENT_SECRET=...
+AUTH0_CALLBACK_URL=http://localhost:5001/api/auth/oauth/callback
+STRIPE_SECRET_KEY=sk_test_...
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+```bash
+npm run dev        # http://localhost:5001
+```
+
+### Seed the Database
+
+Seeds 100 realistic Sri Lankan tutors covering the full Grade 6–13 national curriculum, with random classes, locations, and modes. 65 APPROVED, 35 PENDING.
+
+```bash
+cd tutorlink-api
+npm run seed
+```
+
+All seeded tutors use the password: **`TutorLK@1`**
+
+---
+
+## Deployment
+
+### Frontend → Vercel
+
+Push to `main` — Vercel auto-deploys.
+
+Add environment variables in Vercel dashboard:
+```
+NEXT_PUBLIC_API_URL            https://tutorlink-api.onrender.com/api
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY  pk_test_...
+RESEND_API_KEY                 re_...
+```
+
+### Backend → Render
+
+- **Build command:** `npm install && npx prisma generate`
+- **Start command:** `node server.js`
+
+Add all `.env` variables, updating:
+```
+NODE_ENV       production
+FRONTEND_URL   https://tutorlink-web.vercel.app
 ```
 
 ---
 
-## 📝 API Integration
+## Payment Flow
 
-### Registration Endpoint
-
-**Endpoint:** `POST /api/auth/signup`
-
-**Student Payload:**
-```json
-{
-  "fullName": "John Doe",
-  "email": "john@example.com",
-  "password": "securepass123",
-  "role": "student",
-  "educationLevel": "school",
-  "grade": "Grade 10",
-  "subjects": ["Math", "Physics", "Chemistry"],
-  "learningMode": "online"
-}
+```
+Student clicks Enrol
+  → POST /api/payments/create-intent   (Stripe PaymentIntent created)
+  → Stripe Elements confirms payment client-side
+  → POST /api/payments/confirm         (Enrollment + Payment record saved)
+  → Notifications sent to student and tutor
+  → Enrollment confirmation page shown
 ```
 
-**Tutor Payload:**
-```json
-{
-  "fullName": "Jane Smith",
-  "email": "jane@example.com",
-  "password": "securepass123",
-  "role": "tutor",
-  "subjects": ["Math", "Physics"],
-  "educationLevels": ["school", "university"],
-  "experience": "5-10 years"
-}
-```
+Platform fee: **8%** per payment. Tutors receive **92%**.
 
 ---
 
-## 🔮 Future Enhancements
+## Real-Time Messaging
 
-- Email verification flow
-- Social authentication (Google, GitHub)
-- Profile picture upload
-- Advanced subject filtering
-- Availability scheduling for tutors
-- Student dashboard with booking system
-- Tutor dashboard with session management
-- Real-time messaging between students and tutors
-- Video call integration
-- Payment processing
-- Terms of Service and Privacy Policy pages
+Socket.io handles live messaging. On connection, authenticated users join a room keyed by their `userId`. Admin users join a dedicated `admin` room for broadcast notifications. Messages are delivered via events and persisted to PostgreSQL.
 
 ---
 
-## 🐛 Known Issues & Fixes
+## License
 
-### Fixed Issues:
-
-✅ **UI Flickering During Transitions (Resolved)**
-   - Issue: Layout shifts and flickering when switching between Sign In/Sign Up
-   - Solution: Implemented coordinated animation timing, GPU acceleration, and fixed dimensions
-   - Status: Fully resolved in production
-
-✅ **Dropdown Arrow Spacing (Enhanced)**
-   - Added increased padding-right for better visual spacing on select elements
-
-✅ **Subject Selection UX (Improved)**
-   - Migrated from text input to toggle-based selection for faster interaction
-
----
-
-## 📊 Performance Metrics
-
-- **Lighthouse Score:** 95+ (Production)
-- **First Contentful Paint:** < 1.2s
-- **Time to Interactive:** < 2.5s
-- **Smooth Animations:** 60 FPS on all devices
-- **No Layout Shifts:** CLS score 0.0
-
----
-
-## 📄 License
-
-This project is part of the TutorLink platform.
-
----
-
-## 👥 Contributors
-
-Built with ❤️ by the TutorLink team
-
----
-
-**Last Updated:** January 2025
+MIT
