@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { authStorage, api } from "@/lib/api"
-import { TutorNavbar } from "@/components/tutor-navbar"
+import { TutorShell } from "@/components/tutor/tutor-shell"
+import { TutorPageHeader } from "@/components/tutor/tutor-page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,7 +13,7 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import {
   Plus, MapPin, CalendarDays, Clock, Users,
   Video, Building, MoreVertical, Edit, Trash2, Eye,
-  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, ArrowLeft, AlertTriangle, Star,
+  BookOpen, AlertCircle, X, GraduationCap, Mail, Link, AlertTriangle, Star,
 } from "lucide-react"
 import FolderManager from "@/components/folder-manager"
 
@@ -146,12 +147,18 @@ export default function TutorClassesPage() {
   const cancelledClasses = classes.filter(c => c.status === "CANCELLED")
 
   const ClassCard = ({ cls }: { cls: any }) => (
-    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+    <Card className="group gap-0 overflow-hidden rounded-2xl border border-slate-200/70 py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="h-1 w-full bg-gradient-to-r from-indigo-500 to-purple-600" />
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
-          <div className="flex-1 min-w-0 pr-2">
-            <h3 className="font-semibold text-gray-900 truncate">{cls.subject}</h3>
-            {cls.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{cls.description}</p>}
+          <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
+            <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${cls.mode === "online" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"}`}>
+              {cls.mode === "online" ? <Video className="h-4 w-4" /> : <Building className="h-4 w-4" />}
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-slate-900 truncate">{cls.subject}</h3>
+              {cls.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{cls.description}</p>}
+            </div>
           </div>
           <div className="relative flex-shrink-0" ref={actionMenuOpen === cls.id ? menuRef : undefined}>
             <button
@@ -230,35 +237,21 @@ export default function TutorClassesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TutorNavbar />
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 text-sm transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />Back
-        </button>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-5 h-5 text-indigo-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Classes</h1>
-              <p className="text-sm text-gray-500">Manage your tutoring classes</p>
-            </div>
-          </div>
-          <Button
-            onClick={() => router.push("/tutor/classes/create")}
-            disabled={tutorStatus !== "APPROVED"}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/25"
-          >
-            <Plus className="w-4 h-4 mr-2" />Create Class
-          </Button>
-        </div>
+    <TutorShell maxWidth="max-w-6xl">
+        <TutorPageHeader
+          icon={BookOpen}
+          title="My Classes"
+          subtitle="Manage your tutoring classes"
+          action={
+            <Button
+              onClick={() => router.push("/tutor/classes/create")}
+              disabled={tutorStatus !== "APPROVED"}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/25"
+            >
+              <Plus className="w-4 h-4 mr-2" />Create Class
+            </Button>
+          }
+        />
 
         {isLoading ? (
           <>
@@ -302,14 +295,14 @@ export default function TutorClassesPage() {
             )}
 
         {tutorStatus === "APPROVED" && classes.length === 0 && (
-          <Card className="border-0 shadow-sm">
+          <Card className="rounded-2xl border border-slate-200/70 shadow-sm">
             <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-8 h-8 text-indigo-400" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
+                <BookOpen className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No classes yet</h3>
-              <p className="text-gray-500 mb-4">Create your first class to start accepting students</p>
-              <Button onClick={() => router.push("/tutor/classes/create")} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+              <h3 className="mb-2 text-lg font-bold text-slate-900">No classes yet</h3>
+              <p className="mb-4 text-slate-500">Create your first class to start accepting students</p>
+              <Button onClick={() => router.push("/tutor/classes/create")} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700">
                 <Plus className="w-4 h-4 mr-2" />Create Your First Class
               </Button>
             </CardContent>
@@ -318,7 +311,7 @@ export default function TutorClassesPage() {
 
         {activeClasses.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Classes ({activeClasses.length})</h2>
+            <h2 className="mb-4 text-lg font-bold text-slate-900">Active Classes <span className="text-slate-400">({activeClasses.length})</span></h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {activeClasses.map(cls => <ClassCard key={cls.id} cls={cls} />)}
             </div>
@@ -327,10 +320,10 @@ export default function TutorClassesPage() {
 
         {cancelledClasses.length > 0 && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-500 mb-4">Cancelled Classes ({cancelledClasses.length})</h2>
+            <h2 className="mb-4 text-lg font-bold text-slate-400">Cancelled Classes ({cancelledClasses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {cancelledClasses.map(cls => (
-                <Card key={cls.id} className="border-0 shadow-sm opacity-60">
+                <Card key={cls.id} className="rounded-2xl border border-slate-200/70 shadow-sm opacity-70">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-gray-600 line-through">{cls.subject}</h3>
@@ -345,7 +338,6 @@ export default function TutorClassesPage() {
         )}
           </>
         )}
-      </main>
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
@@ -643,6 +635,6 @@ export default function TutorClassesPage() {
           </div>
         </div>
       )}
-    </div>
+    </TutorShell>
   )
 }

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { authStorage, api } from "@/lib/api"
-import { TutorNavbar } from "@/components/tutor-navbar"
+import { TutorShell } from "@/components/tutor/tutor-shell"
+import { TutorPageHeader } from "@/components/tutor/tutor-page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { TimePicker } from "@/components/ui/time-picker"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import {
-  ArrowLeft, BookOpen, MapPin, Clock, DollarSign, Users,
+  BookOpen, MapPin, Clock, DollarSign, Users,
   Video, Building, Loader2, CheckCircle, FileText, CalendarDays,
 } from "lucide-react"
 
@@ -113,42 +114,37 @@ export default function CreateClassPage() {
   }
 
   if (isLoading) return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-      <LoadingSpinner size="lg" />
-    </div>
+    <TutorShell maxWidth="max-w-2xl">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <LoadingSpinner size="lg" />
+      </div>
+    </TutorShell>
   )
 
   if (success) return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
-      <TutorNavbar />
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+    <TutorShell maxWidth="max-w-2xl">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-in fade-in-0 zoom-in-95 duration-500 text-center">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-green-600 shadow-lg shadow-emerald-500/30">
+            <CheckCircle className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Class Created!</h2>
-          <p className="text-gray-500">Redirecting to your classes...</p>
+          <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">Class Created!</h2>
+          <p className="text-slate-500">Redirecting to your classes...</p>
         </div>
       </div>
-    </div>
+    </TutorShell>
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
-      <TutorNavbar />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm">Back</span>
-        </button>
+    <TutorShell maxWidth="max-w-2xl">
+        <TutorPageHeader
+          icon={BookOpen}
+          title="Create a New Class"
+          subtitle="Monthly enrollment class — students pay per month"
+        />
 
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Create a New Class</h1>
-          <p className="text-gray-500 mt-1 text-sm">Monthly enrollment class - students pay per month</p>
-        </div>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="rounded-2xl border border-slate-200/70 shadow-sm">
+          <CardContent className="p-6 sm:p-7">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -341,7 +337,6 @@ export default function CreateClassPage() {
             </form>
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </TutorShell>
   )
 }

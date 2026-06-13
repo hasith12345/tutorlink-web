@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { TutorNavbar } from "@/components/tutor-navbar"
+import { TutorShell } from "@/components/tutor/tutor-shell"
+import { TutorPageHeader } from "@/components/tutor/tutor-page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
-  ArrowLeft, DollarSign, TrendingUp, Users, CalendarDays,
-  Receipt, Monitor, Building,
+  DollarSign, TrendingUp, Users, CalendarDays,
+  Receipt, Monitor, Building, Wallet,
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -26,25 +27,12 @@ export default function TutorEarningsPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TutorNavbar />
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 text-sm transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />Back
-        </button>
-
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-            <DollarSign className="w-5 h-5 text-indigo-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Earnings</h1>
-            <p className="text-sm text-gray-500">Your 92% share of all student payments</p>
-          </div>
-        </div>
+    <TutorShell maxWidth="max-w-6xl">
+        <TutorPageHeader
+          icon={Wallet}
+          title="My Earnings"
+          subtitle="Your 92% share of all student payments"
+        />
 
         {loading ? (
           <>
@@ -94,47 +82,32 @@ export default function TutorEarningsPage() {
         ) : data ? (
           <>
             {/* Summary cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-              <Card className="bg-white rounded-2xl border-0 shadow-sm">
-                <CardContent className="p-5">
-                  <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mb-3">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    Rs.{data.summary.totalEarned.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-0.5">Total Earned</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white rounded-2xl border-0 shadow-sm">
-                <CardContent className="p-5">
-                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mb-3">
-                    <TrendingUp className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    Rs.{data.summary.thisMonth.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-0.5">This Month</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white rounded-2xl border-0 shadow-sm">
-                <CardContent className="p-5">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-3">
-                    <Users className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">{data.summary.count}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Total Enrollments</p>
-                </CardContent>
-              </Card>
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[
+                { value: `Rs.${data.summary.totalEarned.toLocaleString()}`, label: "Total Earned", icon: DollarSign, gradient: "from-emerald-500 to-green-600", glow: "shadow-emerald-500/30" },
+                { value: `Rs.${data.summary.thisMonth.toLocaleString()}`, label: "This Month", icon: TrendingUp, gradient: "from-indigo-500 to-purple-600", glow: "shadow-indigo-500/30" },
+                { value: `${data.summary.count}`, label: "Total Enrollments", icon: Users, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/30" },
+              ].map((s) => {
+                const Icon = s.icon
+                return (
+                  <Card key={s.label} className="rounded-2xl border border-slate-200/70 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                    <CardContent className="p-5">
+                      <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} shadow-lg ${s.glow}`}>
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                      <p className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</p>
+                      <p className="mt-0.5 text-sm text-slate-500">{s.label}</p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
 
             {/* Payments table */}
-            <Card className="bg-white rounded-2xl border-0 shadow-sm">
+            <Card className="overflow-hidden rounded-2xl border border-slate-200/70 py-0 shadow-sm">
               <CardContent className="p-0">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <h2 className="font-semibold text-gray-900">Payment History</h2>
+                <div className="border-b border-slate-100 px-6 py-4">
+                  <h2 className="font-bold text-slate-900">Payment History</h2>
                 </div>
 
                 {data.payments.length === 0 ? (
@@ -213,7 +186,6 @@ export default function TutorEarningsPage() {
             </Card>
           </>
         ) : null}
-      </main>
-    </div>
+    </TutorShell>
   )
 }
