@@ -1045,10 +1045,17 @@ class ApiClient {
     })
   }
 
-  async createOrGetConversation(tutorId: string): Promise<{ conversation: ConversationSummary }> {
+  // Creates or fetches a conversation with the other party. As a student, pass
+  // the tutor's profile id; as a tutor, pass role="tutor" with the student's
+  // profile id — the backend routes the request based on the field name.
+  async createOrGetConversation(
+    partyId: string,
+    role: 'student' | 'tutor' = 'student',
+  ): Promise<{ conversation: ConversationSummary }> {
+    const body = role === 'tutor' ? { studentId: partyId } : { tutorId: partyId }
     return this.request('/messages/conversations', {
       method: 'POST',
-      body: JSON.stringify({ tutorId }),
+      body: JSON.stringify(body),
       headers: { 'Authorization': `Bearer ${authStorage.getToken()}` },
     })
   }

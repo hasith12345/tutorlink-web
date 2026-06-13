@@ -92,8 +92,8 @@ export function TutorNavbar() {
   return (
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-white"
-      } border-b border-gray-100`}
+        scrolled ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200/70" : "bg-white/70 backdrop-blur-sm border-b border-transparent"
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -109,25 +109,21 @@ export function TutorNavbar() {
 
           {/* Center Nav Links (Desktop) — pill/search-bar style */}
           <div className="hidden lg:flex items-center">
-            <div className="flex items-center bg-white border border-gray-200 rounded-full shadow-sm">
-              {navItems.map((item, index) => {
+            <div className="flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/80 p-1 shadow-sm backdrop-blur">
+              {navItems.map((item) => {
                 const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
                 return (
-                  <div key={item.href} className="flex items-center">
-                    {index !== 0 && (
-                      <div className="w-px h-4 bg-gray-200 flex-shrink-0" />
-                    )}
-                    <Link
-                      href={item.href}
-                      className={`flex items-center px-4 py-2 text-xs font-bold transition-all whitespace-nowrap rounded-full
-                        ${isActive
-                          ? "text-indigo-700"
-                          : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
-                        }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </div>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`relative flex items-center rounded-full px-4 py-1.5 text-xs font-bold whitespace-nowrap transition-all
+                      ${isActive
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
+                  >
+                    {item.label}
+                  </Link>
                 )
               })}
             </div>

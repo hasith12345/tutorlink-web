@@ -61,7 +61,9 @@ export function MessagesView({ initialTutorId, role = "student" }: Props) {
       .finally(() => setLoadingConvs(false))
   }, [])
 
-  // Auto-open conversation when initialTutorId is provided (student entry from class detail)
+  // Auto-open conversation when initialTutorId is provided. For students this is
+  // the tutor's id (entry from class detail); for tutors it's the student's id
+  // (entry from the Students page).
   useEffect(() => {
     if (!initialTutorId || loadingConvs) return
     setInitError(null)
@@ -69,7 +71,7 @@ export function MessagesView({ initialTutorId, role = "student" }: Props) {
     if (existing) {
       openConversation(existing.id, existing.otherParty)
     } else {
-      api.createOrGetConversation(initialTutorId)
+      api.createOrGetConversation(initialTutorId, role)
         .then(({ conversation }) => {
           setConversations((prev) => {
             if (prev.find((c) => c.id === conversation.id)) return prev
